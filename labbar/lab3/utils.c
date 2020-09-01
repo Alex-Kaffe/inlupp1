@@ -86,3 +86,54 @@ char *ask_question_string(char *question)
 {
   return ask_question(question, not_empty, (convert_func) strdup).string_value;
 }
+
+// mutates the original string
+char *trim(char *str) {
+  // if first char is the termination character, then the length is 0
+  if (str[0] == '\0') {
+    return str;
+  }
+
+  int length = strlen(str);
+  int start_index = 0;
+  int end_index = length - 1;
+
+  for (int i = 0; i < end_index; i++) {
+    if (isspace(str[i])) {
+      start_index++;
+    } else {
+      break;
+    }
+  }
+
+  // if the first index of non-space characters is the same as the last index,
+  // it means that all the characters in 'str' are trash.
+  if (start_index == end_index) {
+    str[0] = '\0';
+    return str;
+  }
+
+  for (int i = end_index; i >= 0; i--) {
+    if (isspace(str[i])) {
+      end_index--;
+    } else {
+      break;
+    }
+  }
+
+  int new_length = end_index - start_index + 1;
+
+  // if the new length is not smaller than the original length,
+  // there is no need to modify the string
+  if (new_length < length) {
+    for (int i = 0; i < new_length; i++) {
+      str[i] = str[start_index + i];
+    }
+
+    // we know that 'new_length' is smaller than 'length',
+    // so now overflow error possible
+    str[new_length] = '\0';
+  }
+
+  return str;
+}
