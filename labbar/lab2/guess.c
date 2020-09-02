@@ -10,8 +10,6 @@ int main(void) {
   char buf[buf_siz];
 
   int guess = 0;
-  int guesses = 0;
-  bool won = false;
   char *name;
 
   name = ask_question_string("Skriv in ditt namn:", buf, buf_siz);
@@ -19,7 +17,6 @@ int main(void) {
 
   for (int i = 0; i < max_guesses; i++) {
     guess = ask_question_int("");
-    guesses++;
 
     if (guess < secret_number) {
       puts("För litet!");
@@ -27,16 +24,12 @@ int main(void) {
       puts("För stort!");
     } else {
       puts("Bingo!");
-      won = true;
-      break;
+      printf("Det tog %s %d gissningar att komma fram till %d\n", name, (i+1), secret_number);
+      return 0;
     }
   }
 
-  if (won == true) {
-    printf("Det tog %s %d gissningar att komma fram till %d\n", name, guesses, secret_number);
-  } else {
-    printf("Nu har du slut på gissningar! Jag tänkte på %d!\n", secret_number);
-  }
+  printf("Nu har du slut på gissningar! Jag tänkte på %d!\n", secret_number);
 
   return 0;
 }
