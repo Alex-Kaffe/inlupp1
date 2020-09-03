@@ -82,6 +82,16 @@ int ask_question_int(char *question) {
   return ask_question(question, is_number, (convert_func) atoi).int_value;
 }
 
+int ask_question_int_limit(char *question, int min, int max) {
+  int value;
+
+  do {
+    value = ask_question_int(question);
+  } while (value < min || value > max);
+
+  return value;
+}
+
 char *ask_question_string(char *question) {
   return ask_question(question, not_empty, (convert_func) strdup).string_value;
 }

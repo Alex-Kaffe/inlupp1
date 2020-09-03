@@ -13,10 +13,10 @@ struct item {
 typedef struct item item_t;
 
 void print_item(item_t *item) {
-  printf("Name:  %s\n", item->name);
-  printf("Desc:  %s\n", item->desc);
-  printf("Price: %d.%d\n", (item->price / 100), (item->price % 100));
-  printf("Shelf: %s\n", item->shelf);
+  printf("Namn:       %s\n", item->name);
+  printf("Beskriving: %s\n", item->desc);
+  printf("Pris:       %d.%d\n", (item->price / 100), (item->price % 100));
+  printf("Hylla:      %s\n", item->shelf);
 }
 
 item_t make_item(char *name, char *desc, int price, char* shelf) {
@@ -32,11 +32,11 @@ item_t input_item() {
   char *name, *desc, *shelf;
   int price;
 
-  puts("Create new item:");
-  name = ask_question_string("Name:");
-  desc = ask_question_string("Desc:");
-  price = ask_question_int("Price:");
-  shelf = ask_question_shelf("Shelf:");
+  puts("Skapa ny vara:");
+  name = ask_question_string("Namn:");
+  desc = ask_question_string("Beskriving:");
+  price = ask_question_int("Pris:");
+  shelf = ask_question_shelf("Hylla:");
 
   return make_item(name, desc, price, shelf);
 }
@@ -76,6 +76,35 @@ char *magick(char *arr1[], char *arr2[], char *arr3[], int arr_length) {
   insert_magick_string(buf, buf_siz, arr3, arr_length, &cursor, '\0');
 
   return strdup(buf);
+}
+
+void list_db(item_t *items, int no_items) {
+  for (int i = 0; i < no_items; i++) {
+    // align the printed item names
+    char *spacing = "   ";
+    if (i >= 9) {
+      spacing = "  ";
+    } else if (i >= 99) {
+      spacing = " ";
+    }
+
+    printf("%d.%s%s\n", (i+1), spacing, items[i].name);
+  }
+}
+
+void edit_db(item_t *items, int no_items) {
+  int item_id;
+  item_t updated_item;
+
+  puts("");
+  item_id = ask_question_int_limit("Vilken vara vill du ändra?", 1, no_items) - 1; // we want the index
+  printf("\nNuvarande produktinfo:\n");
+  print_item(&items[item_id]);
+  puts("");
+  updated_item = input_item();
+  puts("");
+
+  items[item_id] = updated_item;
 }
 
 int main(int argc, char *argv[])
@@ -123,11 +152,9 @@ int main(int argc, char *argv[])
       ++db_siz;
     }
 
-   // Skriv ut innehållet
-   for (int i = 0; i < db_siz; ++i) {
-     puts("----------------------------------------");
-     print_item(&db[i]);
-   }
+    list_db(db, db_siz);
+    edit_db(db, db_siz);
+    list_db(db, db_siz);
   }
 
   return 0;
