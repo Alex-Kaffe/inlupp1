@@ -10,7 +10,7 @@ void print(char *str) {
   char *end = str;
   while (*end != '\0' && *end != EOF) {
     putchar(*end);
-    *end++;
+    end++;
   }
 }
 
