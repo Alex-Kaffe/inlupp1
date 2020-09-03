@@ -66,14 +66,10 @@ answer_t ask_question(char *question, check_func check, convert_func convert) {
   int buf_siz = 255;
   char buf[buf_siz];
 
-  while (1) {
+  do {
     printf("%s ", question);
     read_string(buf, buf_siz); // we dont need to use the return value, since we use the 'check' function
-
-    if (check(buf)) {
-      break;
-    }
-  }
+  } while (check(buf) == false);
 
   return convert(buf);
 }
