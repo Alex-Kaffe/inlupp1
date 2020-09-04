@@ -31,6 +31,10 @@ bool is_shelf(char *str) {
   return is_number(str);
 }
 
+char to_upper_char(char *str) {
+  return toupper(*str);
+}
+
 void clear_input_buffer() {
   int c;
 
@@ -145,4 +149,12 @@ char *trim(char *str) {
   }
 
   return str;
+}
+
+bool char_has_match(char action, char *match_string) {
+  do {
+    if (*match_string == action) return true;
+  } while (*match_string++);
+
+  return false;
 }

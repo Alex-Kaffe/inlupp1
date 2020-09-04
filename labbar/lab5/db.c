@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include "utils.h"
 
 struct item {
@@ -92,19 +94,98 @@ void list_db(item_t *items, int no_items) {
   }
 }
 
-void edit_db(item_t *items, int no_items) {
+void edit_db(item_t *db, int db_siz) {
   int item_id;
   item_t updated_item;
 
-  puts("");
-  item_id = ask_question_int_limit("Vilken vara vill du ändra?", 1, no_items) - 1; // we want the index
+  list_db(db, db_siz);
+  item_id = ask_question_int_limit("Vilken vara vill du ändra?", 1, db_siz) - 1; // we want the index
   printf("\nNuvarande produktinfo:\n");
-  print_item(&items[item_id]);
+  print_item(&db[item_id]);
   puts("");
   updated_item = input_item();
   puts("");
 
-  items[item_id] = updated_item;
+  db[item_id] = updated_item;
+}
+
+void print_menu() {
+  printf(
+    "[L]ägg till en vara\n"
+    "[T]a bort en vara\n"
+    "[R]edigera en vara\n"
+    "Ån[g]ra senaste raderingen\n"
+    "Lista [h]ela varukatalogen\n"
+    "[A]vsluta\n"
+  );
+}
+
+bool is_action(char *str) {
+  if (strlen(str) != 1) {
+    return false;
+  }
+
+  return char_has_match(*str, "LlTtRrGgHhAa");
+}
+
+char ask_question_menu() {
+  printf("\n");
+  print_menu();
+  printf("\n");
+  return ask_question("Vad vill du göra?", is_action, (convert_func) to_upper_char).char_value;
+}
+
+void shift_db(item_t *db, int *db_siz, int shift_index) {
+  while (shift_index < (*db_siz - 1)) {
+    db[shift_index] = db[shift_index + 1];
+    shift_index++;
+  }
+
+  *db_siz -= 1;
+}
+
+// assumes that db_size is less than 16 (as defined in main)
+void add_item_to_db(item_t *db, int *db_siz) {
+  db[*db_siz] = input_item();
+  *db_siz += 1;
+}
+
+void remove_item_from_db(item_t *db, int *db_siz) {
+  int item_id;
+
+  list_db(db, *db_siz);
+  item_id = ask_question_int_limit("Vilken vara vill du ta bort?", 1, *db_siz) - 1; // we want the index
+  shift_db(db, db_siz, item_id);
+}
+
+void event_loop(item_t *db, int *db_siz) {
+  char selection;
+  bool exit = false;
+
+  while (exit == false) {
+    selection = ask_question_menu();
+    printf("\n");
+    switch (selection) {
+      case 'L':
+        add_item_to_db(db, db_siz);
+        break;
+      case 'T':
+        remove_item_from_db(db, db_siz);
+        break;
+      case 'R':
+        edit_db(db, *db_siz);
+        break;
+      case 'G':
+        printf("Not yet implemented!\n");
+        break;
+      case 'H':
+        list_db(db, *db_siz);
+        break;
+      case 'A':
+        exit = true;
+        break;
+    }
+  }
 }
 
 int main(int argc, char *argv[])
@@ -152,9 +233,8 @@ int main(int argc, char *argv[])
       ++db_siz;
     }
 
-    list_db(db, db_siz);
-    edit_db(db, db_siz);
-    list_db(db, db_siz);
+    printf("===== Databasmeny =====\n");
+    event_loop(db, &db_siz);
   }
 
   return 0;
