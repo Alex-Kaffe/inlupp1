@@ -23,15 +23,27 @@ void test_create_destroy()
 }
 
 void test_lookup() {
-   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-   // The constant 18 is used to make sure that if we add more than 17 elements (the size of our buckets)
-   // the 18th element is put into a new bucket
-   for (int i = 0; i < 18; ++i) /// 18 is a bit magical
-     {
-       CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, i));
-     }
-   CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, -1));
-   ioopm_hash_table_destroy(ht);
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  // The constant 18 is used to make sure that if we add more than 17 elements (the size of our buckets)
+  // the 18th element is put into a new bucket
+  for (int i = 0; i < 18; ++i) {
+    CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, i));
+  }
+  
+  CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, -1));
+  ioopm_hash_table_destroy(ht);
+}
+
+// Test if an invalid key gives an error
+void test_lookup1() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  CU_ASSERT(errno != EINVAL);
+  char *value = ioopm_hash_table_lookup(ht, 1);
+  CU_ASSERT(errno == EINVAL);
+  CU_ASSERT_PTR_NULL(value);
+  
+  ioopm_hash_table_destroy(ht);
 }
 
 int main()
@@ -50,7 +62,8 @@ int main()
 
   if (
     (NULL == CU_add_test(test_suite1, "it creates and destroys hash tables", test_create_destroy)) ||
-    (NULL == CU_add_test(test_suite1, "it finds elements by key", test_lookup))
+    (NULL == CU_add_test(test_suite1, "it finds elements by key", test_lookup)) ||
+    (NULL == CU_add_test(test_suite1, "it adds a new key", test_lookup1))
   )
     {
       CU_cleanup_registry();

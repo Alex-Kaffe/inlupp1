@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "hash_table.h"
 
 // Following the SIMPLE methodology, we are going to dodge and simplify the specification.
@@ -11,6 +12,9 @@
 
 // ACHIEVEMENT: A3
 typedef struct entry entry_t;
+
+// Errors when looking up a key will be saved into the global 'errno' variable
+extern int errno;
 
 struct entry
 { 
@@ -36,5 +40,17 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
 }
 
 char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
-  return NULL;
+  entry_t *entry = ht->buckets[key % 17];
+  
+  if (entry && entry->key == key) {
+    
+    return entry->value; 
+  } else {
+    errno = EINVAL;
+    return NULL;
+  }
+}
+
+void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value) {
+  
 }
