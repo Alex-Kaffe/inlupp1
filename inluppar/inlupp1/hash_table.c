@@ -17,7 +17,7 @@ typedef struct entry entry_t;
 extern int errno;
 
 struct entry
-{ 
+{
   int key;       // holds the key
   char *value;   // holds the value
   entry_t *next; // points to the next entry (possibly NULL)
@@ -29,28 +29,42 @@ struct hash_table
 };
 
 ioopm_hash_table_t *ioopm_hash_table_create() {
-    /// Allocate space for a ioopm_hash_table_t = 17 pointers to
-  /// entry_t's, which will be set to NULL
+  // Allocate space for a ioopm_hash_table_t = 17 pointers to
+  // entry_t's, which will be set to NULL
   ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
   return result;
 }
 
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
+  // TODO: Using just free(ht) will not be enough once we are able to insert elements
+  //       since each bucket is a linked list.
   free(ht);
 }
 
 char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
-  entry_t *entry = ht->buckets[key % 17];
-  
-  if (entry && entry->key == key) {
-    
-    return entry->value; 
-  } else {
-    errno = EINVAL;
-    return NULL;
-  }
+  // Make sure that key is greater than 0 since e.g. -1 % 17 == -1
+  if (key > 0) {
+    // Reset the errno to make sure that consecutive calls to this function
+    // does not give an invalid result
+    errno = 0;
+
+    entry_t *first = ht->buckets[key % 17];
+    entry_t *current = first;
+
+    while (current != NULL) {
+      if (current->key == key) {
+        return current->value;
+      }
+
+      current = current->next;
+    }
+  };
+
+  // No entry found, set error and return
+  errno = EINVAL;
+  return NULL;
 }
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value) {
-  
+
 }
