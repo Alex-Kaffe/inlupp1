@@ -28,18 +28,76 @@ struct hash_table
   entry_t *buckets[17];
 };
 
+
+/*
 ioopm_hash_table_t *ioopm_hash_table_create() {
   // Allocate space for a ioopm_hash_table_t = 17 pointers to
   // entry_t's, which will be set to NULL
   ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+  return result;
+  }
+void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
+  // TODO: Using just free(ht) will not be enough once we are able to insert elements
+  //       since each bucket is a linked list.
+  free(ht);
+  }*/
+
+
+static entry_t *entry_create(int key, char *value, entry_t *next){
+  //Allocate memory for the new entry.
+  entry_t *result = calloc(1, sizeof(entry_t));
+
+  //Create the new entry.
+  entry_t new_entry = {.key = key, .value = value,  .next = next};
+
+  //The allocated memory is filled with the new entry.
+  *result = new_entry;
+  //Return the created entry.
+  return result;
+}
+
+
+ioopm_hash_table_t *ioopm_hash_table_create() {
+  // Allocate space for a ioopm_hash_table_t = 17 pointers to
+  // entry_t's, which will be set to NULL
+  ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+
+  //Dummy values.
+  int dummy_key = 0;
+  char *dummy_value = NULL;
+  entry_t *dummy_next = NULL;
+  for (int i = 0 ; i < 17 ; i++){
+    //Create a dummy value in each bucket.
+    result->buckets[i] = entry_create(dummy_key, dummy_value, dummy_next);
+  }
+  
   return result;
 }
 
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
   // TODO: Using just free(ht) will not be enough once we are able to insert elements
   //       since each bucket is a linked list.
+  
+  
+  for (int i = 0; i < 17 ; i ++){
+    free(ht->buckets[i]);
+  }
   free(ht);
 }
+
+static entry_t *find_previous_entry_for_key(entry_t *entry, int key)
+{
+  entry_t *first_entry = entry; // Spara första entry om inget annat hittas.
+  //Söker igenom tills next == null, eller om nästa i tablen har nyckeln som vi ska sätta in.
+  while (entry->next != NULL && entry->next->key != key) {
+      entry = entry->next;
+    }
+  if (entry->next == NULL){
+    return first_entry;
+  }
+  return entry;
+}
+
 
 char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
   // Make sure that key is greater than 0 since e.g. -1 % 17 == -1
