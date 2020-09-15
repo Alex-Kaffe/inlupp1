@@ -68,19 +68,21 @@ void test_insert() {
 void test_insert_replace() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  char *value;
   int dummy_key = 1;
   char *initial_value = "test";
   char *replaced_value = "hello";
 
   ioopm_hash_table_insert(ht, dummy_key, initial_value);
 
+  value = ioopm_hash_table_lookup(ht, dummy_key);
+  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_EQUAL(value, initial_value);
+
   // Replace the value of the entry with 'dummy_key' as key
   ioopm_hash_table_insert(ht, dummy_key, replaced_value);
 
-  char *value = ioopm_hash_table_lookup(ht, dummy_key);
-
-  // Make sure that the value was changed to 'replaced_value'
-  // and that there were no errors
+  value = ioopm_hash_table_lookup(ht, dummy_key);
   CU_ASSERT_EQUAL(errno, 0);
   CU_ASSERT_EQUAL(value, replaced_value);
 
@@ -91,10 +93,11 @@ void test_remove_non_existant_key() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
   char *value;
+
+  // 17 in this case refers to the fixed amount of buckets in our hash table
   int buckets_in_hash_table = 17;
   char *dummy_value = "test";
 
-  // 17 in this case refers to the fixed amount of buckets in our hash table
   for (int i = 0; i < buckets_in_hash_table; i++) {
     // Populate the hash table with 17 different entries, one for each bucket
     ioopm_hash_table_insert(ht, i, dummy_value);
@@ -114,22 +117,35 @@ void test_remove_non_existant_key() {
   ioopm_hash_table_destroy(ht);
 }
 
+void assert_insert_and_remove_entry(ioopm_hash_table_t *ht, int key, char *value) {
+  char *lookup_value;
+
+  ioopm_hash_table_insert(ht, key, value);
+
+  lookup_value = ioopm_hash_table_lookup(ht, key);
+  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_EQUAL(value, lookup_value);
+
+  ioopm_hash_table_remove(ht, key);
+  lookup_value = ioopm_hash_table_lookup(ht, key);
+  CU_ASSERT_EQUAL(errno, EINVAL);
+}
+
 void test_remove_deletes_entry() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  char *value;
-  int dummy_key = 1;
-  char *dummy_value = "test";
+  assert_insert_and_remove_entry(ht, 1, "test");
 
-  ioopm_hash_table_insert(ht, dummy_key, dummy_value);
+  ioopm_hash_table_destroy(ht);
+}
 
-  value = ioopm_hash_table_lookup(ht, dummy_key);
-  CU_ASSERT_EQUAL(errno, 0);
-  CU_ASSERT_EQUAL(value, dummy_value);
+// Previously, we had a bug where a insertion would fail when the key was 0
+// This was fixed by using 'find_previous_entry_for_key' and the dummy entries
+// This will make sure that it does not reappear later
+void test_insert_key_0() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  ioopm_hash_table_remove(ht, dummy_key);
-  value = ioopm_hash_table_lookup(ht, dummy_key);
-  CU_ASSERT_EQUAL(errno, EINVAL);
+  assert_insert_and_remove_entry(ht, 0, "test");
 
   ioopm_hash_table_destroy(ht);
 }
@@ -153,7 +169,8 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it inserts a new entry at specified key", test_insert)) ||
     (NULL == CU_add_test(test_suite1, "it replaces an entry when inserting with existing key", test_insert_replace)) ||
     (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove a non existant key", test_remove_non_existant_key)) ||
-    (NULL == CU_add_test(test_suite1, "it removes an existing entry", test_remove_deletes_entry))
+    (NULL == CU_add_test(test_suite1, "it removes an existing entry", test_remove_deletes_entry)) ||
+    (NULL == CU_add_test(test_suite1, "it inserts and removes an entry when the key is 0", test_insert_key_0))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
