@@ -28,21 +28,6 @@ struct hash_table
   entry_t *buckets[17];
 };
 
-
-/*
-ioopm_hash_table_t *ioopm_hash_table_create() {
-  // Allocate space for a ioopm_hash_table_t = 17 pointers to
-  // entry_t's, which will be set to NULL
-  ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
-  return result;
-  }
-void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
-  // TODO: Using just free(ht) will not be enough once we are able to insert elements
-  //       since each bucket is a linked list.
-  free(ht);
-  }*/
-
-
 static entry_t *entry_create(int key, char *value, entry_t *next){
   //Allocate memory for the new entry.
   entry_t *result = calloc(1, sizeof(entry_t));
@@ -74,13 +59,29 @@ ioopm_hash_table_t *ioopm_hash_table_create() {
   return result;
 }
 
+void entry_destroy(entry_t *entry){
+  free(entry);
+}
+
+
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
   // TODO: Using just free(ht) will not be enough once we are able to insert elements
   //       since each bucket is a linked list.
+
   
+  //Loops through the array
+  entry_t *entry;
+  entry_t *tmp;
   
   for (int i = 0; i < 17 ; i ++){
-    free(ht->buckets[i]);
+    entry = ht->buckets[i];
+    while (entry->next != NULL){
+      tmp = entry->next;
+      entry_destroy(entry);
+      entry = tmp;
+    }
+    
+    free(entry);
   }
   free(ht);
 }
@@ -97,6 +98,7 @@ static entry_t *find_previous_entry_for_key(entry_t *entry, int key)
   }
   return entry;
 }
+
 
 
 char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
@@ -123,6 +125,48 @@ char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
   return NULL;
 }
 
-void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value) {
 
+void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value)
+{
+  /// Calculate the bucket for this entry
+  int bucket = key % 17;
+  /// Search for an existing entry for a key
+  entry_t *entry = find_previous_entry_for_key(ht->buckets[bucket], key);
+  entry_t *next = entry->next;
+
+  /// Check if the next entry should be updated or not
+  if (next != NULL && next->key == key)
+    {
+      next->value = value;
+    }
+  else
+    {
+      entry->next = entry_create(key, value, next);
+    }
+}
+
+
+char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
+  if (key > 0){
+    char *str = ioopm_hash_table_lookup(ht, key);
+    int bucket = key % 17;
+    errno = 0;
+  
+    if (errno == EINVAL){
+      str = "Does not exist in the hash table";
+      return str;
+    }
+    entry_t *previous_entry = find_previous_entry_for_key(ht->buckets[bucket], key);
+    entry_t *current_entry = previous_entry->next;
+
+    previous_entry->next = current_entry->next;
+  
+    free(current_entry);  
+  
+  
+    return str;
+  }
+  errno = EINVAL;
+
+  return "Error, key is smaller than 0";
 }
