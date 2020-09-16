@@ -41,7 +41,7 @@ void test_lookup_gives_error() {
 
   // Lookup a key that does not exist (since the hash table is empty)
   char *value = ioopm_hash_table_lookup(ht, 1);
-  CU_ASSERT(errno == EINVAL);
+  CU_ASSERT_TRUE(HAS_ERROR());
   CU_ASSERT_PTR_NULL(value);
 
   ioopm_hash_table_destroy(ht);
@@ -59,7 +59,7 @@ void test_insert() {
 
   // 'errno' gets reset to 0 when calling 'ioopm_hash_table_lookup', so assuming
   // that there were no errors, errno will be 0.
-  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_FALSE(HAS_ERROR());
   CU_ASSERT_EQUAL(value, dummy_value);
 
   ioopm_hash_table_destroy(ht);
@@ -76,14 +76,14 @@ void test_insert_replace() {
   ioopm_hash_table_insert(ht, dummy_key, initial_value);
 
   value = ioopm_hash_table_lookup(ht, dummy_key);
-  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_FALSE(HAS_ERROR());
   CU_ASSERT_EQUAL(value, initial_value);
 
   // Replace the value of the entry with 'dummy_key' as key
   ioopm_hash_table_insert(ht, dummy_key, replaced_value);
 
   value = ioopm_hash_table_lookup(ht, dummy_key);
-  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_FALSE(HAS_ERROR());
   CU_ASSERT_EQUAL(value, replaced_value);
 
   ioopm_hash_table_destroy(ht);
@@ -110,7 +110,7 @@ void test_remove_non_existant_key() {
   // and that the value is the same as before
   for (int i = 0; i < buckets_in_hash_table; i++) {
     value = ioopm_hash_table_lookup(ht, i);
-    CU_ASSERT_EQUAL(errno, 0);
+    CU_ASSERT_FALSE(HAS_ERROR());
     CU_ASSERT_EQUAL(value, dummy_value);
   }
 
@@ -123,12 +123,12 @@ void assert_insert_and_remove_entry(ioopm_hash_table_t *ht, int key, char *value
   ioopm_hash_table_insert(ht, key, value);
 
   lookup_value = ioopm_hash_table_lookup(ht, key);
-  CU_ASSERT_EQUAL(errno, 0);
+  CU_ASSERT_FALSE(HAS_ERROR());
   CU_ASSERT_EQUAL(value, lookup_value);
 
   ioopm_hash_table_remove(ht, key);
   lookup_value = ioopm_hash_table_lookup(ht, key);
-  CU_ASSERT_EQUAL(errno, EINVAL);
+  CU_ASSERT_TRUE(HAS_ERROR());
 }
 
 void test_remove_deletes_entry() {

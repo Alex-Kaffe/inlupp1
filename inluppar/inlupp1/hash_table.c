@@ -4,9 +4,11 @@
 #include <stdbool.h>
 #include "hash_table.h"
 
+#define NO_BUCKETS 17
+
 // Following the SIMPLE methodology, we are going to dodge and simplify the specification.
 // Our first hash table implementation will only support integer keys and string values,
-// and only support a fixed number of buckets (17).
+// and only support a fixed number of buckets (NO_BUCKETS).
 
 // 1. Each index in the array covers a dynamic number of keys7 instead of a single key; and */
 // 2. Each value in the array is a sequence of (key,value) pairs so that each entry in the map is represented by a corresponding (key,value) pair (that we will call an entry). */
@@ -24,7 +26,7 @@ struct entry {
 };
 
 struct hash_table {
-  entry_t *buckets[17];
+  entry_t *buckets[NO_BUCKETS];
 };
 
 static entry_t *entry_create(int key, char *value, entry_t *next){
@@ -41,11 +43,11 @@ static entry_t *entry_create(int key, char *value, entry_t *next){
 }
 
 ioopm_hash_table_t *ioopm_hash_table_create() {
-  // Allocate space for a ioopm_hash_table_t = 17 pointers to
+  // Allocate space for a ioopm_hash_table_t = NO_BUCKETS pointers to
   // entry_t's, which will be set to NULL
   ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
 
-  for (int i = 0 ; i < 17 ; i++){
+  for (int i = 0 ; i < NO_BUCKETS ; i++){
     //Create a dummy value in each bucket.
     result->buckets[i] = entry_create(0, NULL, NULL);
   }
@@ -62,7 +64,7 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
   entry_t *entry;
   entry_t *tmp;
 
-  for (int i = 0; i < 17 ; i ++){
+  for (int i = 0; i < NO_BUCKETS ; i ++){
     entry = ht->buckets[i];
     while (entry->next != NULL){
       tmp = entry->next;
@@ -97,32 +99,29 @@ bool is_valid_key(int key) {
 }
 
 char *ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key) {
-  if (!is_valid_key(key)) {
-    errno = EINVAL;
-    return NULL;
+  if (is_valid_key(key)) {
+    /// Find the previous entry for key
+    entry_t *tmp = find_previous_entry_for_key(ht->buckets[key % NO_BUCKETS], key);
+    entry_t *next = tmp->next;
+
+    if (next && next->key == key) {
+      SUCCESS();
+      return next->value;
+    }
   }
 
-  /// Find the previous entry for key
-  entry_t *tmp = find_previous_entry_for_key(ht->buckets[key % 17], key);
-  entry_t *next = tmp->next;
-
-  if (next && next->key == key) {
-    errno = 0;
-    return next->value;
-  }
-
-  errno = EINVAL;
+  FAILURE();
   return NULL;
 }
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value) {
   if (!is_valid_key(key)) {
-    errno = EINVAL;
+    FAILURE();
     return;
   }
 
   /// Calculate the bucket for this entry
-  int bucket = key % 17;
+  int bucket = key % NO_BUCKETS;
   /// Search for an existing entry for a key
   entry_t *entry = find_previous_entry_for_key(ht->buckets[bucket], key);
   entry_t *next = entry->next;
@@ -133,27 +132,31 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value) {
   } else {
     entry->next = entry_create(key, value, next);
   }
+
+  SUCCESS();
 }
 
 char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
   if (!is_valid_key(key)) {
-    errno = EINVAL;
+    FAILURE();
     return "Invalid key";
   }
 
   char *str = ioopm_hash_table_lookup(ht, key);
-  int bucket = key % 17;
+  int bucket = key % NO_BUCKETS;
 
-  if (errno == EINVAL){
-    str = "Does not exist in the hash table";
-  } else {
-    entry_t *previous_entry = find_previous_entry_for_key(ht->buckets[bucket], key);
-    entry_t *current_entry = previous_entry->next;
-
-    previous_entry->next = current_entry->next;
-
-    free(current_entry);
+  if (HAS_ERROR()) {
+    // No need to call FAILURE macro since errno already is set to EINVAL after
+    // calling 'ioopm_hash_table_lookup'
+    return "Does not exist in the hash table";
   }
+
+  entry_t *previous_entry = find_previous_entry_for_key(ht->buckets[bucket], key);
+  entry_t *current_entry = previous_entry->next;
+
+  previous_entry->next = current_entry->next;
+
+  free(current_entry);
 
   return str;
 }
