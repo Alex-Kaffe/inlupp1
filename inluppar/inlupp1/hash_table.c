@@ -161,7 +161,7 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
   return str;
 }
 
-int ioopm_hash_table_size(ioopm_hash_table_t *ht){
+int ioopm_hash_table_size(ioopm_hash_table_t *ht) {
   int i = 0;
   int counter = 0;
 
@@ -177,7 +177,7 @@ int ioopm_hash_table_size(ioopm_hash_table_t *ht){
 }
 
 
-bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht){
+bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht) {
   int i = 0;
 
   for (; i < NO_BUCKETS ; i++){
@@ -190,10 +190,6 @@ bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht){
   return true;
 }
 
+void ioopm_hash_table_clear(ioopm_hash_table_t *h) {
 
-
-//
-//void ioopm_hash_table_clear(ioopm_hash_table_t *h);
-
-
-
+}

@@ -199,6 +199,34 @@ void test_hash_table_is_empty() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_clear() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  ioopm_hash_table_insert(ht, 1, "test");
+  ioopm_hash_table_insert(ht, 2, "test");
+  ioopm_hash_table_insert(ht, 3, "test");
+
+  CU_ASSERT_FALSE(ioopm_hash_table_is_empty(ht));
+
+  ioopm_hash_table_clear(ht);
+
+  CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_clear_on_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
+
+  ioopm_hash_table_clear(ht);
+
+  CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
+
+  ioopm_hash_table_destroy(ht);
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
@@ -222,7 +250,9 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it inserts and removes an entry when the key is 0", test_insert_key_0)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the size to 0 on a newly allocated hash table", test_hash_table_size_empty)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the correct size after inserting and removing", test_hash_table_size_not_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it detects if the hash table is empty or not", test_hash_table_is_empty))
+    (NULL == CU_add_test(test_suite1, "it detects if the hash table is empty or not", test_hash_table_is_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it clears all entries in a non-empty hash table", test_hash_table_clear)) ||
+    (NULL == CU_add_test(test_suite1, "it does not fail when trying to clear an empty hash table", test_hash_table_clear_on_empty))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
