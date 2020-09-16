@@ -160,3 +160,24 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
 
   return str;
 }
+
+
+
+int ioopm_hash_table_size(ioopm_hash_table_t *ht){
+  int i = 0;
+  int counter = 0;
+
+  for (; i < NO_BUCKETS ; i++){
+    entry_t *first_entry = ht->buckets[i];
+    while (first_entry->next != NULL){
+      //If bucket_size > 1, It counts the dummy entry, whilst skipping the last entry.
+      counter ++;
+      first_entry = first_entry->next;
+    }
+  }
+  return counter;
+}
+
+
+
+
