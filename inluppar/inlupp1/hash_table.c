@@ -161,8 +161,6 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
   return str;
 }
 
-
-
 int ioopm_hash_table_size(ioopm_hash_table_t *ht){
   int i = 0;
   int counter = 0;
