@@ -13,7 +13,25 @@ int clean_suite(void) {
   return 0;
 }
 
-// TODO: Add helper functions for creating dummy entries etc
+void assert_hash_table_size(ioopm_hash_table_t *ht, int expected_size) {
+  int size = ioopm_hash_table_size(ht);
+
+  CU_ASSERT_EQUAL(size, expected_size);
+}
+
+void assert_insert_and_remove_entry(ioopm_hash_table_t *ht, int key, char *value) {
+  char *lookup_value;
+
+  ioopm_hash_table_insert(ht, key, value);
+
+  lookup_value = ioopm_hash_table_lookup(ht, key);
+  CU_ASSERT_FALSE(HAS_ERROR());
+  CU_ASSERT_EQUAL(value, lookup_value);
+
+  ioopm_hash_table_remove(ht, key);
+  lookup_value = ioopm_hash_table_lookup(ht, key);
+  CU_ASSERT_TRUE(HAS_ERROR());
+}
 
 void test_create_destroy() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
@@ -117,20 +135,6 @@ void test_remove_non_existant_key() {
   ioopm_hash_table_destroy(ht);
 }
 
-void assert_insert_and_remove_entry(ioopm_hash_table_t *ht, int key, char *value) {
-  char *lookup_value;
-
-  ioopm_hash_table_insert(ht, key, value);
-
-  lookup_value = ioopm_hash_table_lookup(ht, key);
-  CU_ASSERT_FALSE(HAS_ERROR());
-  CU_ASSERT_EQUAL(value, lookup_value);
-
-  ioopm_hash_table_remove(ht, key);
-  lookup_value = ioopm_hash_table_lookup(ht, key);
-  CU_ASSERT_TRUE(HAS_ERROR());
-}
-
 void test_remove_deletes_entry() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
@@ -146,6 +150,33 @@ void test_insert_key_0() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
   assert_insert_and_remove_entry(ht, 0, "test");
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_size_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  // A newly allocated hash table is empty (though it does have dummy entries)
+  assert_hash_table_size(ht, 0);
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_size_not_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  int dummy_key = 1;
+
+  assert_hash_table_size(ht, 0);
+
+  ioopm_hash_table_insert(ht, dummy_key, "test");
+
+  assert_hash_table_size(ht, 1);
+
+  ioopm_hash_table_remove(ht, dummy_key);
+
+  assert_hash_table_size(ht, 0);
 
   ioopm_hash_table_destroy(ht);
 }
