@@ -262,6 +262,42 @@ void test_hash_table_clear_on_empty() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_keys() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_keys_empty() {
+
+}
+
+void test_hash_table_keys_same_bucket() {
+
+}
+
+void test_hash_table_keys_modified() {
+
+}
+
+void test_hash_table_values() {
+
+}
+
+void test_hash_table_values_empty() {
+
+}
+
+void test_hash_table_values_same_bucket() {
+
+}
+
+void test_hash_table_values_modified() {
+
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
