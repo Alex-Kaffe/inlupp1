@@ -162,34 +162,50 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
 }
 
 int ioopm_hash_table_size(ioopm_hash_table_t *ht) {
-  int i = 0;
   int counter = 0;
+  entry_t *current_entry;
 
-  for (; i < NO_BUCKETS ; i++){
-    entry_t *first_entry = ht->buckets[i];
-    while (first_entry->next != NULL){
+  for (int i = 0; i < NO_BUCKETS ; i++) {
+    current_entry = ht->buckets[i];
+    while (current_entry->next != NULL){
       //If bucket_size > 1, It counts the dummy entry, whilst skipping the last entry.
-      counter ++;
-      first_entry = first_entry->next;
+      current_entry = current_entry->next;
+      counter++;
     }
   }
+
   return counter;
 }
 
-
 bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht) {
-  int i = 0;
+  entry_t *current_entry;
 
-  for (; i < NO_BUCKETS ; i++){
-    entry_t *first_entry = ht->buckets[i];
+  for (int i = 0; i < NO_BUCKETS ; i++){
+    current_entry = ht->buckets[i];
     //If the dummy entry points to another entry, the hash_table isn't empty
-    if (first_entry->next != NULL){
+    if (current_entry->next != NULL){
       return false;
     }
   }
+
   return true;
 }
 
-void ioopm_hash_table_clear(ioopm_hash_table_t *h) {
+void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
+  //Loops through the array
+  entry_t *dummy;
+  entry_t *next_entry;
+  entry_t *tmp;
 
+  for (int i = 0; i < NO_BUCKETS ; i ++){
+    dummy = ht->buckets[i];
+    next_entry = dummy->next;
+    dummy->next = NULL; // make sure that the dummy does not point to an unallocated entry
+
+    while (next_entry != NULL) {
+      tmp = next_entry->next;
+      entry_destroy(next_entry);
+      next_entry = tmp;
+    }
+  }
 }

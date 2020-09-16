@@ -185,13 +185,16 @@ void test_hash_table_size_same_bucket() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
   assert_hash_table_size(ht, 0);
-
   ioopm_hash_table_insert(ht, 17 * 0, "test");
   assert_hash_table_size(ht, 1);
   ioopm_hash_table_insert(ht, 17 * 1, "test");
   assert_hash_table_size(ht, 2);
   ioopm_hash_table_insert(ht, 17 * 2, "test");
   assert_hash_table_size(ht, 3);
+  ioopm_hash_table_insert(ht, 17 * 3, "test");
+  assert_hash_table_size(ht, 4);
+  ioopm_hash_table_insert(ht, 17 * 4, "test");
+  assert_hash_table_size(ht, 5);
 
   ioopm_hash_table_destroy(ht);
 }
@@ -221,12 +224,10 @@ void test_hash_table_clear() {
   ioopm_hash_table_insert(ht, 2, "test");
   ioopm_hash_table_insert(ht, 3, "test");
 
-  int previoussize = ioopm_hash_table_size(ht);
   CU_ASSERT_FALSE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_clear(ht);
 
-  int newsize = ioopm_hash_table_size(ht);
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_destroy(ht);
@@ -238,13 +239,12 @@ void test_hash_table_clear_same_bucket() {
   ioopm_hash_table_insert(ht, 17 * 0, "test");
   ioopm_hash_table_insert(ht, 17 * 1, "test");
   ioopm_hash_table_insert(ht, 17 * 2, "test");
+  ioopm_hash_table_insert(ht, 17 * 3, "test");
 
-  int previoussize = ioopm_hash_table_size(ht);
   CU_ASSERT_FALSE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_clear(ht);
 
-  int newsize = ioopm_hash_table_size(ht);
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_destroy(ht);
