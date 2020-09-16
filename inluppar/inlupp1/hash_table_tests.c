@@ -330,11 +330,11 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated hash table", test_create_destroy)) ||
     (NULL == CU_add_test(test_suite1, "it returns NULL for keys that does not exist", test_lookup)) ||
     (NULL == CU_add_test(test_suite1, "it returns an error for keys that does not exist", test_lookup_gives_error)) ||
-    (NULL == CU_add_test(test_suite1, "it inserts a new entry at specified key", test_insert)) ||
+    (NULL == CU_add_test(test_suite1, "it inserts a new entry", test_insert)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entries", test_insert_multiple)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entires into the same bucket", test_insert_same_bucket)) ||
     (NULL == CU_add_test(test_suite1, "it replaces an entry when inserting with existing key", test_insert_replace)) ||
-    (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove a non existant key", test_remove_non_existant_key)) ||
+    (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove a non-existent key", test_remove_non_existant_key)) ||
     (NULL == CU_add_test(test_suite1, "it removes an existing entry", test_remove_deletes_entry)) ||
     (NULL == CU_add_test(test_suite1, "it inserts and removes an entry when the key is 0", test_insert_key_0)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the size to 0 on a newly allocated hash table", test_hash_table_size_empty)) ||
