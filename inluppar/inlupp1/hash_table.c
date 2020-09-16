@@ -179,5 +179,23 @@ int ioopm_hash_table_size(ioopm_hash_table_t *ht){
 }
 
 
+bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht){
+  int i = 0;
+
+  for (; i < NO_BUCKETS ; i++){
+    entry_t *first_entry = ht->buckets[i];
+    //If the dummy entry points to another entry, the hash_table isn't empty
+    if (first_entry->next != NULL){
+      return false;
+    }
+  }
+  return true;
+}
+
+
+
+//
+//void ioopm_hash_table_clear(ioopm_hash_table_t *h);
+
 
 
