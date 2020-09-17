@@ -474,6 +474,79 @@ void test_hash_table_values_modified() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_has_key() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  int key = 999;
+  
+  ioopm_hash_table_insert(ht, key, "hello world");
+  
+  bool is_valid = ioopm_hash_table_has_key(ht, key);
+  CU_ASSERT_TRUE(is_valid);
+  
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_has_key_invalid() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  bool is_valid = ioopm_hash_table_has_key(ht, 999);
+  CU_ASSERT_FALSE(is_valid);
+  
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_has_value_invalid() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  bool is_valid = ioopm_hash_table_has_value(ht, "hello world");
+  CU_ASSERT_FALSE(is_valid);
+  
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_has_value_equivalent() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  char *value = "hello world";
+  char *value_copy = strdup(value);
+  
+  ioopm_hash_table_insert(ht, 999, value);
+  
+  bool is_valid = ioopm_hash_table_has_value(ht, value_copy);
+  CU_ASSERT_TRUE(is_valid);
+  
+  free(value_copy);
+  
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_has_value_identity() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  char *value = "hello world";
+  
+  ioopm_hash_table_insert(ht, 100, value);
+  
+  bool is_valid = ioopm_hash_table_has_value(ht, value);
+  CU_ASSERT_TRUE(is_valid);
+  
+  ioopm_hash_table_destroy(ht);
+} 
+
+void test_hash_table_has_value_null() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  char *value = NULL;
+  
+  ioopm_hash_table_insert(ht, 100, value);
+  
+  bool is_valid = ioopm_hash_table_has_value(ht, value);
+  CU_ASSERT_TRUE(is_valid);
+  
+  ioopm_hash_table_destroy(ht);
+} 
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
@@ -510,7 +583,13 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns an array of all values", test_hash_table_values)) ||
     (NULL == CU_add_test(test_suite1, "it returns an empty array of values when the hash table is empty", test_hash_table_values_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns an array of all values when inserted into the same bucket", test_hash_table_values_same_bucket)) ||
-    (NULL == CU_add_test(test_suite1, "it returns an updated array of values after removing", test_hash_table_values_modified))
+    (NULL == CU_add_test(test_suite1, "it returns an updated array of values after removing", test_hash_table_values_modified)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true if key is present in the hash table", test_hash_table_has_key)) ||
+    (NULL == CU_add_test(test_suite1, "it returns false if key is not present in the hash table", test_hash_table_has_key_invalid)) ||
+    (NULL == CU_add_test(test_suite1, "it returns false if a value is not present in the hash table", test_hash_table_has_value_invalid)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true if a copy of a value is present in the hash table", test_hash_table_has_value_equivalent)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true if a a value with the same identity as a value is present in the hash table", test_hash_table_has_value_identity)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true if value is NULL", test_hash_table_has_value_null))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

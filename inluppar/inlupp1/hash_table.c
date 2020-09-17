@@ -252,3 +252,37 @@ char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
 
   return values;
 }
+
+bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key) {
+  ioopm_hash_table_lookup(ht, key);
+  
+  // HAS_ERROR() returns true if the key does NOT exist
+  // so we must invert the value since true should be returned
+  // only if the key DOES exist
+  return !HAS_ERROR();
+}
+
+bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value) {
+  entry_t *bucket;
+  entry_t *current;
+  
+  for (int i = 0 ; i < NO_BUCKETS; i++) {
+    bucket = ht->buckets[i];
+    current = bucket->next;
+    
+    while (current != NULL) {
+      char *current_value = current->value;
+      
+      if (
+        ((current_value == NULL || value == NULL) && current_value == value) ||
+        (strcmp(current_value, value) == 0) 
+      ) {
+        return true; 
+      }
+      
+      current = current->next;
+    }
+  }
+  
+  return false;
+}

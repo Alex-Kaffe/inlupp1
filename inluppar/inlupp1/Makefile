@@ -7,7 +7,7 @@ hash_table.o: hash_table.c hash_table.h
 tests: hash_table_tests
 	./hash_table_tests.out
 
-memtest:
+memtest: hash_table_tests
 	valgrind --leak-check=full ./hash_table_tests.out
 
 clean:

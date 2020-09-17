@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <string.h>
 
 /**
  * @file hash_table.h
