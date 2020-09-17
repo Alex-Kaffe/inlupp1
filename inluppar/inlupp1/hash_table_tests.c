@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <CUnit/Basic.h>
@@ -44,6 +45,26 @@ void assert_remove(ioopm_hash_table_t *ht, int key) {
 void assert_insert_and_remove(ioopm_hash_table_t *ht, int key, char *value) {
   assert_insert(ht, key, value);
   assert_remove(ht, key);
+}
+
+void assert_keys_array_terminates(int *keys, int keys_size) {
+  int termination_value = -1;
+  CU_ASSERT_EQUAL(keys[keys_size], termination_value);
+}
+
+void assert_keys_array(ioopm_hash_table_t *ht, int *expected_keys, int expected_size) {
+  int *keys = ioopm_hash_table_keys(ht);
+
+  assert_keys_array_terminates(keys, expected_size);
+
+  for (int i = 0; i < expected_size; i++) {
+    // Make sure that all keys are present in the keys array
+    // and that they are in the expected order.
+    CU_ASSERT_EQUAL(keys[i], expected_keys[i]);
+  }
+
+  // Make sure to clean up the allocated keys array
+  free(keys);
 }
 
 void test_create_destroy() {
@@ -268,21 +289,78 @@ void test_hash_table_clear_on_empty() {
 void test_hash_table_keys() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int keys_size = 3;
+  int expected_keys[] = { 1, 2, 3 };
 
+  for (int i = 0; i < keys_size; i++) {
+    ioopm_hash_table_insert(ht, expected_keys[i], NULL);
+  }
+
+  assert_keys_array(ht, expected_keys, keys_size);
 
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_keys_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int expected_keys[0]; // create an empty array
+
+  assert_keys_array(ht, expected_keys, 0);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_keys_same_bucket() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int buckets_in_hash_table = 17;
+  int keys_size = 3;
+  int expected_keys[] = {
+    buckets_in_hash_table * 0,
+    buckets_in_hash_table * 1,
+    buckets_in_hash_table * 2
+  };
+
+  for (int i = 0; i < keys_size; i++) {
+    ioopm_hash_table_insert(ht, expected_keys[i], NULL);
+  }
+
+  assert_keys_array(ht, expected_keys, keys_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_keys_modified() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int buckets_in_hash_table = 17;
+  int keys_size = 3;
+  int expected_keys[] = {
+    buckets_in_hash_table * 0,
+    buckets_in_hash_table * 1,
+    buckets_in_hash_table * 2
+  };
+
+  for (int i = 0; i < keys_size; i++) {
+    ioopm_hash_table_insert(ht, expected_keys[i], NULL);
+  }
+
+  assert_keys_array(ht, expected_keys, keys_size);
+
+  ioopm_hash_table_remove(ht, buckets_in_hash_table * 2); // remove one element
+
+  int keys_modified_size = 2;
+  int expected_modified_keys[] = {
+    buckets_in_hash_table * 0,
+    buckets_in_hash_table * 1,
+  };
+
+  // Make sure that the keys array is updated and that the key that was removed
+  // is no longer present
+  assert_keys_array(ht, expected_modified_keys, keys_modified_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_values() {
@@ -329,7 +407,11 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it detects if the hash table is empty or not", test_hash_table_is_empty)) ||
     (NULL == CU_add_test(test_suite1, "it clears all entries in a non-empty hash table", test_hash_table_clear)) ||
     (NULL == CU_add_test(test_suite1, "it does not fail when trying to clear an empty hash table", test_hash_table_clear_on_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it clears a hash table where all entries are in the same bucket", test_hash_table_clear_same_bucket))
+    (NULL == CU_add_test(test_suite1, "it clears a hash table where all entries are in the same bucket", test_hash_table_clear_same_bucket)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an array of all keys", test_hash_table_keys)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an empty array of keys when the hash table is empty", test_hash_table_keys_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an array of all keys when inserted into the same bucket", test_hash_table_keys_same_bucket)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an updated array of keys after removing", test_hash_table_keys_modified))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

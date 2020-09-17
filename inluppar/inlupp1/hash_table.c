@@ -197,3 +197,11 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
     }
   }
 }
+
+int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
+  // Allocate memory for an empty keys array (storing only the termination value -1)
+  int *keys = calloc(1, sizeof(int));
+  keys[0] = -1;
+
+  return keys;
+}
