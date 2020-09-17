@@ -21,23 +21,29 @@ void assert_hash_table_size(ioopm_hash_table_t *ht, int expected_size) {
   CU_ASSERT_EQUAL(size, expected_size);
 }
 
-void assert_insert(ioopm_hash_table_t *ht, int key, char *value) {
-  char *lookup_value;
+void assert_lookup(ioopm_hash_table_t *ht, int key, char *value, bool should_have_error) {
+  char *lookup_value = ioopm_hash_table_lookup(ht, key);
 
-  ioopm_hash_table_insert(ht, key, value);
-  lookup_value = ioopm_hash_table_lookup(ht, key);
-
-  CU_ASSERT_FALSE(HAS_ERROR());
+  CU_ASSERT_EQUAL(HAS_ERROR(), should_have_error);
   CU_ASSERT_EQUAL(lookup_value, value);
+}
+
+// Inserts an entry into the hash table and makes sure that it is inserted correctly using lookup
+void assert_insert(ioopm_hash_table_t *ht, int key, char *value) {
+  ioopm_hash_table_insert(ht, key, value);
+  assert_lookup(ht, key, value, false);
+}
+
+// Removes an entry from the hash table and makes sure that it no longer exists
+// using lookup
+void assert_remove(ioopm_hash_table_t *ht, int key) {
+  ioopm_hash_table_remove(ht, key);
+  assert_lookup(ht, key, NULL, true);
 }
 
 void assert_insert_and_remove(ioopm_hash_table_t *ht, int key, char *value) {
   assert_insert(ht, key, value);
-
-  ioopm_hash_table_remove(ht, key);
-  ioopm_hash_table_lookup(ht, key);
-
-  CU_ASSERT_TRUE(HAS_ERROR());
+  assert_remove(ht, key);
 }
 
 void test_create_destroy() {
@@ -51,23 +57,13 @@ void test_lookup() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
   // Make sure that each bucket is empty (except for the dummy entry)
-  for (int i = 0; i < 17; ++i) {
-    CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, i));
+  // Also make sure that accessing a bucket with a key larger than the amount of buckets
+  // resolves to NULL
+  for (int i = 0; i < 18; ++i) {
+    assert_lookup(ht, i, NULL, true);
   }
 
-  CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, -1));
-
-  ioopm_hash_table_destroy(ht);
-}
-
-// Test if an invalid key gives an error
-void test_lookup_gives_error() {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create();
-
-  // Lookup a key that does not exist (since the hash table is empty)
-  char *value = ioopm_hash_table_lookup(ht, 1);
-  CU_ASSERT_TRUE(HAS_ERROR());
-  CU_ASSERT_PTR_NULL(value);
+  assert_lookup(ht, -1, NULL, true);
 
   ioopm_hash_table_destroy(ht);
 }
@@ -114,18 +110,15 @@ void test_insert_same_bucket() {
   ioopm_hash_table_destroy(ht);
 }
 
-void test_remove_non_existant_key() {
+void test_remove_invalid_key() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  char *value;
-
-  // 17 in this case refers to the fixed amount of buckets in our hash table
   int buckets_in_hash_table = 17;
-  char *dummy_value = "test";
+  char *test_value = "test";
 
   for (int i = 0; i < buckets_in_hash_table; i++) {
     // Populate the hash table with 17 different entries, one for each bucket
-    ioopm_hash_table_insert(ht, i, dummy_value);
+    ioopm_hash_table_insert(ht, i, test_value);
   }
 
   // Try to remove an invalid key
@@ -134,9 +127,7 @@ void test_remove_non_existant_key() {
   // Make sure that all the dummy entries are still present in the hash table
   // and that the value is the same as before
   for (int i = 0; i < buckets_in_hash_table; i++) {
-    value = ioopm_hash_table_lookup(ht, i);
-    CU_ASSERT_FALSE(HAS_ERROR());
-    CU_ASSERT_EQUAL(value, dummy_value);
+    assert_lookup(ht, i, test_value, false);
   }
 
   ioopm_hash_table_destroy(ht);
@@ -173,16 +164,21 @@ void test_hash_table_size_empty() {
 void test_hash_table_size_not_empty() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  int dummy_key = 1;
+  int test_key1 = 1;
+  int test_key2 = 2;
 
   assert_hash_table_size(ht, 0);
 
-  ioopm_hash_table_insert(ht, dummy_key, "test");
-
+  ioopm_hash_table_insert(ht, test_key1, "test");
   assert_hash_table_size(ht, 1);
 
-  ioopm_hash_table_remove(ht, dummy_key);
+  ioopm_hash_table_insert(ht, test_key2, "test");
+  assert_hash_table_size(ht, 2);
 
+  ioopm_hash_table_remove(ht, test_key2);
+  assert_hash_table_size(ht, 1);
+
+  ioopm_hash_table_remove(ht, test_key1);
   assert_hash_table_size(ht, 0);
 
   ioopm_hash_table_destroy(ht);
@@ -201,14 +197,11 @@ void test_hash_table_size_same_bucket() {
   ioopm_hash_table_insert(ht, buckets_in_hash_table * 1, "test");
   assert_hash_table_size(ht, 2);
 
-  ioopm_hash_table_insert(ht, buckets_in_hash_table * 2, "test");
-  assert_hash_table_size(ht, 3);
+  ioopm_hash_table_remove(ht, buckets_in_hash_table * 1);
+  assert_hash_table_size(ht, 1);
 
-  ioopm_hash_table_insert(ht, buckets_in_hash_table * 3, "test");
-  assert_hash_table_size(ht, 4);
-
-  ioopm_hash_table_insert(ht, buckets_in_hash_table * 4, "test");
-  assert_hash_table_size(ht, 5);
+  ioopm_hash_table_remove(ht, buckets_in_hash_table * 0);
+  assert_hash_table_size(ht, 0);
 
   ioopm_hash_table_destroy(ht);
 }
@@ -221,11 +214,9 @@ void test_hash_table_is_empty() {
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_insert(ht, dummy_key, "test");
-
   CU_ASSERT_FALSE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_remove(ht, dummy_key);
-
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_destroy(ht);
@@ -255,12 +246,9 @@ void test_hash_table_clear_same_bucket() {
   ioopm_hash_table_insert(ht, buckets_in_hash_table * 0, "test");
   ioopm_hash_table_insert(ht, buckets_in_hash_table * 1, "test");
   ioopm_hash_table_insert(ht, buckets_in_hash_table * 2, "test");
-  ioopm_hash_table_insert(ht, buckets_in_hash_table * 3, "test");
-
   CU_ASSERT_FALSE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_clear(ht);
-
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_destroy(ht);
@@ -272,7 +260,6 @@ void test_hash_table_clear_on_empty() {
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_clear(ht);
-
   CU_ASSERT_TRUE(ioopm_hash_table_is_empty(ht));
 
   ioopm_hash_table_destroy(ht);
@@ -329,12 +316,11 @@ int main() {
   if (
     (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated hash table", test_create_destroy)) ||
     (NULL == CU_add_test(test_suite1, "it returns NULL for keys that does not exist", test_lookup)) ||
-    (NULL == CU_add_test(test_suite1, "it returns an error for keys that does not exist", test_lookup_gives_error)) ||
     (NULL == CU_add_test(test_suite1, "it inserts a new entry", test_insert)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entries", test_insert_multiple)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entires into the same bucket", test_insert_same_bucket)) ||
     (NULL == CU_add_test(test_suite1, "it replaces an entry when inserting with existing key", test_insert_replace)) ||
-    (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove a non-existent key", test_remove_non_existant_key)) ||
+    (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove an invalid key", test_remove_invalid_key)) ||
     (NULL == CU_add_test(test_suite1, "it removes an existing entry", test_remove_deletes_entry)) ||
     (NULL == CU_add_test(test_suite1, "it inserts and removes an entry when the key is 0", test_insert_key_0)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the size to 0 on a newly allocated hash table", test_hash_table_size_empty)) ||
