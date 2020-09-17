@@ -26,7 +26,15 @@ void assert_lookup(ioopm_hash_table_t *ht, int key, char *value, bool should_hav
   char *lookup_value = ioopm_hash_table_lookup(ht, key);
 
   CU_ASSERT_EQUAL(HAS_ERROR(), should_have_error);
-  CU_ASSERT_EQUAL(lookup_value, value);
+
+  if (should_have_error || value == NULL) {
+    CU_ASSERT_EQUAL(lookup_value, value);
+  } else {
+    // Only assert string equality when we expect no errors
+    // since CU_ASSERT_STRING_EQUAL will cause a segfault when
+    // a value is NULL
+    CU_ASSERT_STRING_EQUAL(lookup_value, value);
+  }
 }
 
 // Inserts an entry into the hash table and makes sure that it is inserted correctly using lookup
@@ -52,6 +60,10 @@ void assert_keys_array_terminates(int *keys, int keys_size) {
   CU_ASSERT_EQUAL(keys[keys_size], termination_value);
 }
 
+void assert_values_array_terminates(char **values, int values_size) {
+  CU_ASSERT_PTR_NULL(values[values_size]);
+}
+
 void assert_keys_array(ioopm_hash_table_t *ht, int *expected_keys, int expected_size) {
   int *keys = ioopm_hash_table_keys(ht);
 
@@ -65,6 +77,28 @@ void assert_keys_array(ioopm_hash_table_t *ht, int *expected_keys, int expected_
 
   // Make sure to clean up the allocated keys array
   free(keys);
+}
+
+void assert_values_array(ioopm_hash_table_t *ht, char *expected_values[], int expected_size) {
+  char **values = ioopm_hash_table_values(ht);
+
+  assert_values_array_terminates(values, expected_size);
+
+  for (int i = 0; i < expected_size; i++) {
+    // Make sure that all values are present in the values array
+    // and that they are in the expected order.
+    if (values[i] == NULL) {
+      // Prevent segfault if a value is NULL and simply assert the pointer instead.
+      // Doing it like this makes it more clear as to why the test does not work,
+      // rather than just crashing
+      CU_ASSERT_PTR_NOT_NULL(values[i]);
+    } else {
+      CU_ASSERT_STRING_EQUAL(values[i], expected_values[i]);
+    }
+  }
+
+  // Make sure to clean up the allocated values array
+  free(values);
 }
 
 void test_create_destroy() {
@@ -289,14 +323,14 @@ void test_hash_table_clear_on_empty() {
 void test_hash_table_keys() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  int keys_size = 3;
+  int expected_size = 3;
   int expected_keys[] = { 1, 2, 3 };
 
-  for (int i = 0; i < keys_size; i++) {
+  for (int i = 0; i < expected_size; i++) {
     ioopm_hash_table_insert(ht, expected_keys[i], NULL);
   }
 
-  assert_keys_array(ht, expected_keys, keys_size);
+  assert_keys_array(ht, expected_keys, expected_size);
 
   ioopm_hash_table_destroy(ht);
 }
@@ -315,18 +349,18 @@ void test_hash_table_keys_same_bucket() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
   int buckets_in_hash_table = 17;
-  int keys_size = 3;
+  int expected_size = 3;
   int expected_keys[] = {
     buckets_in_hash_table * 0,
     buckets_in_hash_table * 1,
     buckets_in_hash_table * 2
   };
 
-  for (int i = 0; i < keys_size; i++) {
+  for (int i = 0; i < expected_size; i++) {
     ioopm_hash_table_insert(ht, expected_keys[i], NULL);
   }
 
-  assert_keys_array(ht, expected_keys, keys_size);
+  assert_keys_array(ht, expected_keys, expected_size);
 
   ioopm_hash_table_destroy(ht);
 }
@@ -334,49 +368,110 @@ void test_hash_table_keys_same_bucket() {
 void test_hash_table_keys_modified() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  int buckets_in_hash_table = 17;
-  int keys_size = 3;
-  int expected_keys[] = {
-    buckets_in_hash_table * 0,
-    buckets_in_hash_table * 1,
-    buckets_in_hash_table * 2
-  };
+  int expected_size = 3;
+  int expected_keys[] = { 0, 1, 2 };
 
-  for (int i = 0; i < keys_size; i++) {
+  for (int i = 0; i < expected_size; i++) {
     ioopm_hash_table_insert(ht, expected_keys[i], NULL);
   }
 
-  assert_keys_array(ht, expected_keys, keys_size);
+  assert_keys_array(ht, expected_keys, expected_size);
 
-  ioopm_hash_table_remove(ht, buckets_in_hash_table * 2); // remove one element
+  ioopm_hash_table_remove(ht, expected_keys[expected_size - 1]); // remove the last element from expected_keys
 
-  int keys_modified_size = 2;
-  int expected_modified_keys[] = {
-    buckets_in_hash_table * 0,
-    buckets_in_hash_table * 1,
-  };
+  int expected_modified_size = 2;
+  int expected_modified_keys[] = { 0, 1 };
 
   // Make sure that the keys array is updated and that the key that was removed
   // is no longer present
-  assert_keys_array(ht, expected_modified_keys, keys_modified_size);
+  assert_keys_array(ht, expected_modified_keys, expected_modified_size);
 
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_values() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int expected_size = 3;
+  char *expected_values[] = {
+    "test",
+    "hello",
+    "world",
+  };
+
+  for (int i = 0; i < expected_size; i++) {
+    ioopm_hash_table_insert(ht, i, expected_values[i]);
+  }
+
+  assert_values_array(ht, expected_values, expected_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_values_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int expected_size = 0;
+  char *expected_values[expected_size];// create an empty array
+
+  assert_values_array(ht, expected_values, expected_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_values_same_bucket() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int buckets_in_hash_table = 17;
+  int expected_size = 3;
+  char *expected_values[] = {
+    "test",
+    "hello",
+    "world",
+  };
+
+  // insert entries with a value from expected_values into the same bucket
+  for (int i = 0; i < expected_size; i++) {
+    ioopm_hash_table_insert(ht, buckets_in_hash_table * i, expected_values[i]);
+  }
+
+  assert_values_array(ht, expected_values, expected_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_values_modified() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
+  int expected_size = 3;
+  char *expected_values[] = {
+    "test",
+    "hello",
+    "world",
+  };
+
+  // insert entries with a value from expected_values into the same bucket
+  for (int i = 0; i < expected_size; i++) {
+    ioopm_hash_table_insert(ht,  i, expected_values[i]);
+  }
+
+  assert_values_array(ht, expected_values, expected_size);
+
+  // We do not explicitly say which keys should be used for each value,
+  // but we know that the for-loop inserts each value at key 0..expected_size-1.
+  // This means that to remove the last element from expected_values in the hash table
+  // we simply remove the key (expected_size - 1).
+  ioopm_hash_table_remove(ht, expected_size - 1);
+
+  int expected_modified_size = 2;
+  char *expected_modified_values[] = {
+    "test",
+    "hello",
+  };
+
+  assert_values_array(ht, expected_modified_values, expected_modified_size);
+
+  ioopm_hash_table_destroy(ht);
 }
 
 int main() {
@@ -411,7 +506,11 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns an array of all keys", test_hash_table_keys)) ||
     (NULL == CU_add_test(test_suite1, "it returns an empty array of keys when the hash table is empty", test_hash_table_keys_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns an array of all keys when inserted into the same bucket", test_hash_table_keys_same_bucket)) ||
-    (NULL == CU_add_test(test_suite1, "it returns an updated array of keys after removing", test_hash_table_keys_modified))
+    (NULL == CU_add_test(test_suite1, "it returns an updated array of keys after removing", test_hash_table_keys_modified)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an array of all values", test_hash_table_values)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an empty array of values when the hash table is empty", test_hash_table_values_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an array of all values when inserted into the same bucket", test_hash_table_values_same_bucket)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an updated array of values after removing", test_hash_table_values_modified))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

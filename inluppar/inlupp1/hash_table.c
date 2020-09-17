@@ -205,3 +205,11 @@ int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
 
   return keys;
 }
+
+char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
+  // Allocate memory for an empty values array (storing only the termination value NULL)
+  char **values = calloc(1, sizeof(char*));
+  values[0] = NULL;
+
+  return values;
+}
