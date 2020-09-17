@@ -196,6 +196,27 @@ void test_remove_deletes_entry() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_remove_unlinks_entry() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  int buckets_in_hash_table = 17;
+
+  ioopm_hash_table_insert(ht, buckets_in_hash_table * 0, "test1");
+  ioopm_hash_table_insert(ht, buckets_in_hash_table * 1, "test2");
+  ioopm_hash_table_insert(ht, buckets_in_hash_table * 2, "test3");
+
+  // Remove the entry in the middle
+  ioopm_hash_table_remove(ht, buckets_in_hash_table * 1);
+
+  // Make sure that the entry with key 2 has been removed
+  // and that the link between entry 1 and 3 is not broken
+  assert_lookup(ht, buckets_in_hash_table * 0, "test1", false);
+  assert_lookup(ht, buckets_in_hash_table * 1, NULL, true);
+  assert_lookup(ht, buckets_in_hash_table * 2, "test3", false);
+
+  ioopm_hash_table_destroy(ht);
+}
+
 // Previously, we had a bug where a insertion would fail when the key was 0
 // This was fixed by using 'find_previous_entry_for_key' and the dummy entries
 // This will make sure that it does not reappear later
@@ -476,76 +497,76 @@ void test_hash_table_values_modified() {
 
 void test_hash_table_has_key() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   int key = 999;
-  
+
   ioopm_hash_table_insert(ht, key, "hello world");
-  
+
   bool is_valid = ioopm_hash_table_has_key(ht, key);
   CU_ASSERT_TRUE(is_valid);
-  
+
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_has_key_invalid() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   bool is_valid = ioopm_hash_table_has_key(ht, 999);
   CU_ASSERT_FALSE(is_valid);
-  
+
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_has_value_invalid() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   bool is_valid = ioopm_hash_table_has_value(ht, "hello world");
   CU_ASSERT_FALSE(is_valid);
-  
+
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_has_value_equivalent() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   char *value = "hello world";
   char *value_copy = strdup(value);
-  
+
   ioopm_hash_table_insert(ht, 999, value);
-  
+
   bool is_valid = ioopm_hash_table_has_value(ht, value_copy);
   CU_ASSERT_TRUE(is_valid);
-  
+
   free(value_copy);
-  
+
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_has_value_identity() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   char *value = "hello world";
-  
+
   ioopm_hash_table_insert(ht, 100, value);
-  
+
   bool is_valid = ioopm_hash_table_has_value(ht, value);
   CU_ASSERT_TRUE(is_valid);
-  
+
   ioopm_hash_table_destroy(ht);
-} 
+}
 
 void test_hash_table_has_value_null() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   char *value = NULL;
-  
+
   ioopm_hash_table_insert(ht, 100, value);
-  
+
   bool is_valid = ioopm_hash_table_has_value(ht, value);
   CU_ASSERT_TRUE(is_valid);
-  
+
   ioopm_hash_table_destroy(ht);
-} 
+}
 
 int main() {
   CU_pSuite test_suite1 = NULL;
@@ -568,6 +589,7 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it replaces an entry when inserting with existing key", test_insert_replace)) ||
     (NULL == CU_add_test(test_suite1, "it does nothing when trying to remove an invalid key", test_remove_invalid_key)) ||
     (NULL == CU_add_test(test_suite1, "it removes an existing entry", test_remove_deletes_entry)) ||
+    (NULL == CU_add_test(test_suite1, "it unlinks an existing entry", test_remove_unlinks_entry)) ||
     (NULL == CU_add_test(test_suite1, "it inserts and removes an entry when the key is 0", test_insert_key_0)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the size to 0 on a newly allocated hash table", test_hash_table_size_empty)) ||
     (NULL == CU_add_test(test_suite1, "it calculates the correct size after inserting and removing", test_hash_table_size_not_empty)) ||
@@ -584,12 +606,12 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns an empty array of values when the hash table is empty", test_hash_table_values_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns an array of all values when inserted into the same bucket", test_hash_table_values_same_bucket)) ||
     (NULL == CU_add_test(test_suite1, "it returns an updated array of values after removing", test_hash_table_values_modified)) ||
-    (NULL == CU_add_test(test_suite1, "it returns true if key is present in the hash table", test_hash_table_has_key)) ||
-    (NULL == CU_add_test(test_suite1, "it returns false if key is not present in the hash table", test_hash_table_has_key_invalid)) ||
-    (NULL == CU_add_test(test_suite1, "it returns false if a value is not present in the hash table", test_hash_table_has_value_invalid)) ||
-    (NULL == CU_add_test(test_suite1, "it returns true if a copy of a value is present in the hash table", test_hash_table_has_value_equivalent)) ||
-    (NULL == CU_add_test(test_suite1, "it returns true if a a value with the same identity as a value is present in the hash table", test_hash_table_has_value_identity)) ||
-    (NULL == CU_add_test(test_suite1, "it returns true if value is NULL", test_hash_table_has_value_null))
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with a valid key", test_hash_table_has_key)) ||
+    (NULL == CU_add_test(test_suite1, "it returns false when searching for an entry with an invalid key", test_hash_table_has_key_invalid)) ||
+    (NULL == CU_add_test(test_suite1, "it returns false when searching for an entry with an invalid value", test_hash_table_has_value_invalid)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being a copy", test_hash_table_has_value_equivalent)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being of the same identity", test_hash_table_has_value_identity)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value set to NULL", test_hash_table_has_value_null))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

@@ -144,7 +144,7 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
 
   previous_entry->next = current_entry->next;
 
-  free(current_entry);
+  entry_destroy(current_entry);
 
   return str;
 }
@@ -200,26 +200,26 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 
 int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
   int size = ioopm_hash_table_size(ht);
-  
+
   // Allocate memory for an empty keys array (storing only the termination value -1)
   int *keys = calloc(size + 1, sizeof(int)); // reserve one element for the termination value
-  
+
   entry_t *bucket;
   entry_t *current;
- 
+
   int iteration = 0;
-   
+
   for (int i = 0 ; i < NO_BUCKETS; i++) {
     bucket = ht->buckets[i];
     current = bucket->next;
-    
+
     while (current != NULL) {
       keys[iteration] = current->key;
       current = current->next;
       iteration++;
     }
   }
-  
+
   // Set the termination value
   keys[size] = -1;
 
@@ -228,26 +228,26 @@ int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
 
 char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
   int size = ioopm_hash_table_size(ht);
-  
+
   // Allocate memory for an empty values array (storing only the termination value NULL)
   char **values = calloc(size + 1, sizeof(char*));
-  
+
   entry_t *bucket;
   entry_t *current;
- 
+
   int iteration = 0;
-   
+
   for (int i = 0 ; i < NO_BUCKETS; i++) {
     bucket = ht->buckets[i];
     current = bucket->next;
-    
+
     while (current != NULL) {
       values[iteration] = current->value;
       current = current->next;
       iteration++;
     }
   }
-  
+
   values[size] = NULL;
 
   return values;
@@ -255,7 +255,7 @@ char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
 
 bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key) {
   ioopm_hash_table_lookup(ht, key);
-  
+
   // HAS_ERROR() returns true if the key does NOT exist
   // so we must invert the value since true should be returned
   // only if the key DOES exist
@@ -265,24 +265,27 @@ bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key) {
 bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value) {
   entry_t *bucket;
   entry_t *current;
-  
+
   for (int i = 0 ; i < NO_BUCKETS; i++) {
     bucket = ht->buckets[i];
     current = bucket->next;
-    
+
     while (current != NULL) {
       char *current_value = current->value;
-      
+
+      // strcmp does not accept NULL as input value(s) and will cause segfaults.
+      // Therefore we make sure to always check if any of the two values are NULL
+      // and compare those separately
       if (
         ((current_value == NULL || value == NULL) && current_value == value) ||
-        (strcmp(current_value, value) == 0) 
+        (strcmp(current_value, value) == 0)
       ) {
-        return true; 
+        return true;
       }
-      
+
       current = current->next;
     }
   }
-  
+
   return false;
 }
