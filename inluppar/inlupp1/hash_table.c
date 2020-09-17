@@ -199,17 +199,56 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 }
 
 int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
+  int size = ioopm_hash_table_size(ht);
+  
   // Allocate memory for an empty keys array (storing only the termination value -1)
-  int *keys = calloc(1, sizeof(int));
-  keys[0] = -1;
+  int *keys = calloc(size + 1, sizeof(int)); // reserve one element for the termination value
+  
+  entry_t *bucket;
+  entry_t *current;
+ 
+  int iteration = 0;
+   
+  for (int i = 0 ; i < NO_BUCKETS; i++) {
+    bucket = ht->buckets[i];
+    current = bucket->next;
+    
+    while (current != NULL) {
+      keys[iteration] = current->key;
+      current = current->next;
+      iteration++;
+    }
+  }
+  
+  // Set the termination value
+  keys[size] = -1;
 
   return keys;
 }
 
 char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
+  int size = ioopm_hash_table_size(ht);
+  
   // Allocate memory for an empty values array (storing only the termination value NULL)
-  char **values = calloc(1, sizeof(char*));
-  values[0] = NULL;
+  char **values = calloc(size + 1, sizeof(char*));
+  
+  entry_t *bucket;
+  entry_t *current;
+ 
+  int iteration = 0;
+   
+  for (int i = 0 ; i < NO_BUCKETS; i++) {
+    bucket = ht->buckets[i];
+    current = bucket->next;
+    
+    while (current != NULL) {
+      values[iteration] = current->value;
+      current = current->next;
+      iteration++;
+    }
+  }
+  
+  values[size] = NULL;
 
   return values;
 }
