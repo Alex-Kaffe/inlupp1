@@ -289,3 +289,41 @@ bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value) {
 
   return false;
 }
+
+bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg){
+  int i = 0;
+  int size = ioopm_hash_table_size(ht);
+  int *keys = ioopm_hash_table_keys(ht);
+  char **values = ioopm_hash_table_values(ht);
+  
+  bool result = true;
+  
+  for (; i < size && result ; i++){
+    result = result && pred(keys[i], values[i], arg);
+  }
+  
+  free(keys);
+  free(values);
+  
+  return result;
+} 
+
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function apply_fun, void *arg){
+  int i = 0;
+  entry_t *dummy_entry;
+  entry_t *entry;
+  
+  for(; i < NO_BUCKETS ; i++){
+    dummy_entry = ht->buckets[i];
+    entry = dummy_entry->next;
+      
+    while(entry != NULL){
+      apply_fun(entry->key, &entry->value, arg);
+      entry = entry->next;
+    }
+  }
+}
+
+bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg) {
+  return true;
+}

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <CUnit/Basic.h>
 
 #include "hash_table.h"
@@ -568,6 +569,63 @@ void test_hash_table_has_value_null() {
   ioopm_hash_table_destroy(ht);
 }
 
+bool value_equivlent(int key, char *value, void *x) {
+  return strcmp(value, (char*)x) == 0;
+}
+
+void change_all_values(int key, char **value, void *x) {
+  //char *new_value = (char*)x;
+  //int length = strlen(new_value);
+  //char *new_value_ptr = calloc(length + 1, sizeof(char));
+  //value = x;
+  //free(value);
+  //strcpy(*value, (char *)x);
+  //free(*value);
+  //char *new_x = strdup((char *)x);
+  //*value = new_x;
+  //free (new_x);
+  
+  *value = (char*)x;
+}
+
+void test_hash_table_all() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  char *initial_value = "hello";
+  
+  ioopm_hash_table_insert(ht, 1, initial_value);
+  ioopm_hash_table_insert(ht, 2, initial_value);
+  ioopm_hash_table_insert(ht, 3, initial_value);
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  
+  // Replace the value of key 3 to another value which should cause
+  // ioopm_hash_table_all to return false
+  ioopm_hash_table_insert(ht, 3, "goodbye");
+  
+  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_apply_all() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  
+  char *initial_value = "hello";
+  char *new_value = "goodbye";
+  
+  ioopm_hash_table_insert(ht, 1, initial_value);
+  ioopm_hash_table_insert(ht, 2, initial_value);
+  ioopm_hash_table_insert(ht, 3, initial_value);
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  
+  ioopm_hash_table_apply_to_all(ht, change_all_values, new_value);
+  
+  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, new_value));
+  
+  ioopm_hash_table_destroy(ht);
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
@@ -611,7 +669,9 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns false when searching for an entry with an invalid value", test_hash_table_has_value_invalid)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being a copy", test_hash_table_has_value_equivalent)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being of the same identity", test_hash_table_has_value_identity)) ||
-    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value set to NULL", test_hash_table_has_value_null))
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value set to NULL", test_hash_table_has_value_null)) ||
+    (NULL == CU_add_test(test_suite1, "it applies a function to all entries and returns true or false based on the result", test_hash_table_all)) ||
+    (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
