@@ -93,7 +93,7 @@ bool ioopm_hash_table_all(ioopm_hash_table_t *h, ioopm_predicate pred, void *arg
 /// @param h hash table operated upon
 /// @param pred the predicate
 /// @param arg extra argument to pred
-bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg);
+bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_predicate pred, void *arg);
 
 /// @brief apply a function to all entries in a hash table
 /// @param h hash table operated upon

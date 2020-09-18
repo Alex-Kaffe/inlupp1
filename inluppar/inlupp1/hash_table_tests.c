@@ -569,22 +569,11 @@ void test_hash_table_has_value_null() {
   ioopm_hash_table_destroy(ht);
 }
 
-bool value_equivlent(int key, char *value, void *x) {
+bool value_equiv(int key, char *value, void *x) {
   return strcmp(value, (char*)x) == 0;
 }
 
 void change_all_values(int key, char **value, void *x) {
-  //char *new_value = (char*)x;
-  //int length = strlen(new_value);
-  //char *new_value_ptr = calloc(length + 1, sizeof(char));
-  //value = x;
-  //free(value);
-  //strcpy(*value, (char *)x);
-  //free(*value);
-  //char *new_x = strdup((char *)x);
-  //*value = new_x;
-  //free (new_x);
-  
   *value = (char*)x;
 }
 
@@ -596,13 +585,13 @@ void test_hash_table_all() {
   ioopm_hash_table_insert(ht, 1, initial_value);
   ioopm_hash_table_insert(ht, 2, initial_value);
   ioopm_hash_table_insert(ht, 3, initial_value);
-  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, initial_value));
   
   // Replace the value of key 3 to another value which should cause
   // ioopm_hash_table_all to return false
   ioopm_hash_table_insert(ht, 3, "goodbye");
   
-  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equiv, initial_value));
   
   ioopm_hash_table_destroy(ht);
 }
@@ -616,12 +605,12 @@ void test_hash_table_apply_all() {
   ioopm_hash_table_insert(ht, 1, initial_value);
   ioopm_hash_table_insert(ht, 2, initial_value);
   ioopm_hash_table_insert(ht, 3, initial_value);
-  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, initial_value));
   
   ioopm_hash_table_apply_to_all(ht, change_all_values, new_value);
   
-  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equivlent, initial_value));
-  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equivlent, new_value));
+  CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equiv, initial_value));
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, new_value));
   
   ioopm_hash_table_destroy(ht);
 }
