@@ -503,8 +503,7 @@ void test_hash_table_has_key() {
 
   ioopm_hash_table_insert(ht, key, "hello world");
 
-  bool is_valid = ioopm_hash_table_has_key(ht, key);
-  CU_ASSERT_TRUE(is_valid);
+  CU_ASSERT_TRUE(ioopm_hash_table_has_key(ht, key));
 
   ioopm_hash_table_destroy(ht);
 }
@@ -512,8 +511,7 @@ void test_hash_table_has_key() {
 void test_hash_table_has_key_invalid() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  bool is_valid = ioopm_hash_table_has_key(ht, 999);
-  CU_ASSERT_FALSE(is_valid);
+  CU_ASSERT_FALSE(ioopm_hash_table_has_key(ht, 999));
 
   ioopm_hash_table_destroy(ht);
 }
@@ -521,8 +519,7 @@ void test_hash_table_has_key_invalid() {
 void test_hash_table_has_value_invalid() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
-  bool is_valid = ioopm_hash_table_has_value(ht, "hello world");
-  CU_ASSERT_FALSE(is_valid);
+  CU_ASSERT_FALSE(ioopm_hash_table_has_value(ht, "hello world"));
 
   ioopm_hash_table_destroy(ht);
 }
@@ -535,8 +532,7 @@ void test_hash_table_has_value_equivalent() {
 
   ioopm_hash_table_insert(ht, 999, value);
 
-  bool is_valid = ioopm_hash_table_has_value(ht, value_copy);
-  CU_ASSERT_TRUE(is_valid);
+  CU_ASSERT_TRUE(ioopm_hash_table_has_value(ht, value_copy));
 
   free(value_copy);
 
@@ -550,8 +546,7 @@ void test_hash_table_has_value_identity() {
 
   ioopm_hash_table_insert(ht, 100, value);
 
-  bool is_valid = ioopm_hash_table_has_value(ht, value);
-  CU_ASSERT_TRUE(is_valid);
+  CU_ASSERT_TRUE(ioopm_hash_table_has_value(ht, value));
 
   ioopm_hash_table_destroy(ht);
 }
@@ -563,8 +558,7 @@ void test_hash_table_has_value_null() {
 
   ioopm_hash_table_insert(ht, 100, value);
 
-  bool is_valid = ioopm_hash_table_has_value(ht, value);
-  CU_ASSERT_TRUE(is_valid);
+  CU_ASSERT_TRUE(ioopm_hash_table_has_value(ht, value));
 
   ioopm_hash_table_destroy(ht);
 }
@@ -579,39 +573,49 @@ void change_all_values(int key, char **value, void *x) {
 
 void test_hash_table_all() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   char *initial_value = "hello";
-  
+
   ioopm_hash_table_insert(ht, 1, initial_value);
   ioopm_hash_table_insert(ht, 2, initial_value);
   ioopm_hash_table_insert(ht, 3, initial_value);
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, initial_value));
-  
+
   // Replace the value of key 3 to another value which should cause
   // ioopm_hash_table_all to return false
   ioopm_hash_table_insert(ht, 3, "goodbye");
-  
+
   CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equiv, initial_value));
-  
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_all_empty() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+
+  // In our implementation, running 'ioopm_hash_table_all' on an empty hash table
+  // always returns true
+  CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, "hello world"));
+
   ioopm_hash_table_destroy(ht);
 }
 
 void test_hash_table_apply_all() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  
+
   char *initial_value = "hello";
   char *new_value = "goodbye";
-  
+
   ioopm_hash_table_insert(ht, 1, initial_value);
   ioopm_hash_table_insert(ht, 2, initial_value);
   ioopm_hash_table_insert(ht, 3, initial_value);
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, initial_value));
-  
+
   ioopm_hash_table_apply_to_all(ht, change_all_values, new_value);
-  
+
   CU_ASSERT_FALSE(ioopm_hash_table_all(ht, value_equiv, initial_value));
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, value_equiv, new_value));
-  
+
   ioopm_hash_table_destroy(ht);
 }
 
@@ -659,7 +663,8 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being a copy", test_hash_table_has_value_equivalent)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being of the same identity", test_hash_table_has_value_identity)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value set to NULL", test_hash_table_has_value_null)) ||
-    (NULL == CU_add_test(test_suite1, "it applies a function to all entries and returns true or false based on the result", test_hash_table_all)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true if all entries matches the predicate", test_hash_table_all)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty hash table", test_hash_table_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all))
    ) {
     CU_cleanup_registry();
