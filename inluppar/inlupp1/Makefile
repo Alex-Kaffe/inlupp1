@@ -14,18 +14,27 @@ hash_table.o: hash_table.c hash_table.h
 linked_list.o: linked_list.c list_linked.h
 	gcc $(CFLAGS) $(CFLAGS_LIB) linked_list.c -o linked_list.o
 
-hash_table_tests: hash_table.o hash_table_tests.c 
+hash_table_tests.o: hash_table.o hash_table_tests.c
 	gcc $(CFLAGS) hash_table.o hash_table_tests.c -o hash_table_tests.out -lcunit
-	
-linked_list_tests: linked_list.o linked_list_tests.c
+
+linked_list_tests.o: linked_list.o linked_list_tests.c
 	gcc $(CFLAGS) linked_list.o linked_list_tests.c -o linked_list_tests.out -lcunit
 
-tests: hash_table_tests linked_list_tests
+hash_table_mem: hash_table.o hash_table_tests.o
+	valgrind --leak-check=full ./hash_table_tests.out
+
+linked_list_mem: linked_list.o linked_list_tests.o
+	valgrind --leak-check=full ./linked_list_tests.out
+
+hash_table_tests:
 	./hash_table_tests.out
+
+linked_list_tests:
 	./linked_list_tests.out
 
-memtest: hash_table_tests linked_list_tests
-	valgrind --leak-check=full ./hash_table_tests.out ./linked_list_tests.out
+tests: hash_table_tests linked_list_tests
+
+memtest: hash_table_mem linked_list_mem
 
 clean:
 	rm hash_table_tests.out

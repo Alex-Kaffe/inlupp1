@@ -15,9 +15,11 @@ int clean_suite(void) {
 }
 
 void test_create_destroy() {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  CU_ASSERT_PTR_NOT_NULL(ht);
-  ioopm_hash_table_destroy(ht);
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  CU_ASSERT_PTR_NOT_NULL(list);
+
+  ioopm_linked_list_destroy(list);
 }
 
 int main() {
@@ -33,7 +35,7 @@ int main() {
   }
 
   if (
-    (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated linked list", test_create_destroy)) ||
+    (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated linked list", test_create_destroy))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
