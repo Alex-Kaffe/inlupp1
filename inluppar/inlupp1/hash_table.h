@@ -33,7 +33,7 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 
 /// @brief add key => value entry in hash table ht
 /// @param ht hash table operated upon
-/// @param key key to insert
+/// @param key key to insert (only positive keys are accepted)
 /// @param value value to insert
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value);
 
@@ -65,12 +65,12 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *h);
 
 /// @brief return the keys for all entries in a hash map (in no particular order, but same as ioopm_hash_table_values)
 /// @param h hash table operated upon
-/// @return an array of keys for hash table h
+/// @return an array of keys for hash table h terminated with '-1'
 int *ioopm_hash_table_keys(ioopm_hash_table_t *h);
 
 /// @brief return the values for all entries in a hash map (in no particular order, but same as ioopm_hash_table_keys)
 /// @param h hash table operated upon
-/// @return an array of values for hash table h
+/// @return an array of values for hash table h terminated with 'NULL'
 char **ioopm_hash_table_values(ioopm_hash_table_t *h);
 
 /// @brief check if a hash table has an entry with a given key
