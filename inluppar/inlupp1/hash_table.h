@@ -87,6 +87,7 @@ bool ioopm_hash_table_has_value(ioopm_hash_table_t *h, char *value);
 /// @param h hash table operated upon
 /// @param pred the predicate
 /// @param arg extra argument to pred
+/// @return true if all values matches the predicate or if the hash table is empty
 bool ioopm_hash_table_all(ioopm_hash_table_t *h, ioopm_predicate pred, void *arg);
 
 /// @brief check if a predicate is satisfied by any entry in a hash table
