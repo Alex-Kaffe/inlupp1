@@ -20,17 +20,17 @@ hash_table_tests.o: hash_table.o hash_table_tests.c
 linked_list_tests.o: linked_list.o linked_list_tests.c
 	gcc $(CFLAGS) linked_list.o linked_list_tests.c -o linked_list_tests.out -lcunit
 
-hash_table_mem: hash_table.o hash_table_tests.o
-	valgrind --leak-check=full ./hash_table_tests.out
-
-linked_list_mem: linked_list.o linked_list_tests.o
-	valgrind --leak-check=full ./linked_list_tests.out
-
-hash_table_tests:
+hash_table_tests: hash_table_tests.o
 	./hash_table_tests.out
 
-linked_list_tests:
+linked_list_tests: linked_list_tests.o
 	./linked_list_tests.out
+
+hash_table_mem: hash_table_tests.o
+	valgrind --leak-check=full ./hash_table_tests.out
+
+linked_list_mem: linked_list_tests.o
+	valgrind --leak-check=full ./linked_list_tests.out
 
 tests: hash_table_tests linked_list_tests
 
