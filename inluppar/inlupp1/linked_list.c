@@ -2,66 +2,87 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
+
 #include "list_linked.h"
 
 typedef struct link link_t;
 
 struct link {
-  int element;
+  int value;
   link_t *next;
 };
 
 struct list {
-  link_t *links[17];
   link_t *first;
   link_t *last;
   int size;
 };
 
-static void link_destroy(link_t *link){
+static void link_destroy(link_t *link) {
   free(link);
 }
 
+static link_t *link_create(int value, link_t *next) {
+  // Allocate memory for the new entry.
+  link_t *result = calloc(1, sizeof(link_t));
 
-ioopm_list_t *ioopm_linked_list_create(){
-  ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
-  /*
-  for (int i = 0 ; i < 17 ; i++){
-    //Create a dummy value in each bucket.
-    result->links[i] = link_create(0, NULL);
-  }
-  */
+  // The allocated memory is filled with the new entry.
+  *result = (link_t){
+    .value = value,
+    .next = next,
+  };
+
   return result;
 }
 
+ioopm_list_t *ioopm_linked_list_create() {
+  ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
+  link_t *dummy = link_create(0, NULL);
 
-void ioopm_linked_list_destroy(ioopm_list_t *list){
+  // Create an empty hash table and assign to the allocated memory
+  *result = (ioopm_list_t){
+    .first = dummy,
+    .last = dummy,
+    .size = 0,
+  };
+
+  return result;
+}
+
+void ioopm_linked_list_destroy(ioopm_list_t *list) {
+  // The first link of the list is a dummy entry
+  link_t *link = list->first;
+  link_t *tmp;
+
+  while (link != NULL) {
+    tmp = link->next;
+    link_destroy(link);
+    link = tmp;
+  }
+
   free(list);
 }
-/*  //Loops through the array
-  list_t *link;
-  list_t *tmp;
 
-  for (int i = 0; i < 17 ; i ++){
-    entry = ht->links[i];
-    while (link->next != NULL){
-      tmp = link->next;
-      link_destroy(link);
-      link = tmp;
-    }
+void ioopm_linked_list_append(ioopm_list_t *list, int value) {
+  link_t *new_link = link_create(value, NULL);
 
-    free(entry);
+  if (ioopm_linked_list_size(list) == 0) {
+    // If the size is 0, first and last points to the dummy link
+    list->first->next = new_link;
+  } else {
+    list->last->next = new_link;
   }
-*/
 
-void ioopm_linked_list_append(ioopm_list_t *list, int value){
-  link_t *result = calloc(1, sizeof(link_t));
-  
-  link_t *first = list->first;
-  link_t new_link = { .element = value, .next = first};
-  
-  *result = new_link;
-  
-  list->first = result;
-  
+  // Make sure to always update the last pointer when appending
+  list->last = new_link;
+
+  list->size++;
+}
+
+int ioopm_linked_list_size(ioopm_list_t *list) {
+  return list->size;
+}
+
+bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
+  return false;
 }

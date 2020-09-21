@@ -2,6 +2,10 @@
 #include <stdbool.h>
 
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
+
+typedef bool(*ioopm_char_predicate)(int key, char *value, void *extra);
+typedef void(*ioopm_apply_char_function)(int key, char **value, void *extra);
+
 /// FIXME: better comments here
 /// @brief Creates a new empty list
 /// @return an empty linked list
@@ -10,7 +14,7 @@ ioopm_list_t *ioopm_linked_list_create();
 /// @brief Tear down the linked list and return all its memory (but not the memory of the elements)
 /// @param list the list to be destroyed
 void ioopm_linked_list_destroy(ioopm_list_t *list);
-/*
+
 /// @brief Insert at the end of a linked list in O(1) time
 /// @param list the linked list that will be appended
 /// @param value the value to be appended
@@ -49,9 +53,9 @@ int ioopm_linked_list_get(ioopm_list_t *list, int index);
 
 /// @brief Test if an element is in the list
 /// @param list the linked list
-/// @param element the element sought
+/// @param value of the element sought
 /// @return true if element is in the list, else false
-bool ioopm_linked_list_contains(ioopm_list_t *list, int element);
+bool ioopm_linked_list_contains(ioopm_list_t *list, int value);
 
 /// @brief Lookup the number of elements in the linked list in O(1) time
 /// @param list the linked list
@@ -88,4 +92,3 @@ bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_char_predicate prop, void *
 /// @param fun the function to be applied
 /// @param extra an additional argument (may be NULL) that will be passed to all internal calls of fun
 void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun, void *extra);
-*/
