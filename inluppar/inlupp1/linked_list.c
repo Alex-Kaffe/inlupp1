@@ -79,10 +79,26 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
   list->size++;
 }
 
+void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
+
+}
+
+void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
+
+}
+
+int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
+  return 0;
+}
+
 int ioopm_linked_list_size(ioopm_list_t *list) {
   return list->size;
 }
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   return false;
+}
+
+int ioopm_linked_list_get(ioopm_list_t *list, int index) {
+  return 0;
 }
