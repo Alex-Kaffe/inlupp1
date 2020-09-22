@@ -44,6 +44,20 @@ void test_append() {
   ioopm_linked_list_destroy(list);
 }
 
+void test_prepend() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int values_length = 3;
+  int values[] = {100, 200, 300};
+
+  for (int i = 0; i < values_length ; i++){
+    ioopm_linked_list_prepend(list, values[i]);
+    assert_link_added(list, values[i], i+1);
+  }
+
+  ioopm_linked_list_destroy(list);
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
@@ -58,7 +72,8 @@ int main() {
 
   if (
     (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated linked list", test_create_destroy)) ||
-    (NULL == CU_add_test(test_suite1, "it appends links into the linked list", test_append))
+    (NULL == CU_add_test(test_suite1, "it appends links into the linked list", test_append)) ||
+    (NULL == CU_add_test(test_suite1, "it prepends links into the linked list", test_prepend))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
