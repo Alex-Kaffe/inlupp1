@@ -101,7 +101,6 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
-  
   //Vad händer om vi skickar in ett index-värde större än size?
   //Svar: Vi sätter den sist woop woop
   if (index >= list->size) {
@@ -196,14 +195,20 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   link_t *first = list->first;
-  link_t *last  = list->last;
+  link_t *last = list->last;
+  link_t *current;
 
-  while(first != NULL) {
-    if (first->value == value) {
+  if (first->value == value || last->value == value) {
+    return true;
+  }
+  
+  current = first->next;
+  while(current != NULL) {
+    if (current->value == value) {
       return true;
     }
 
-    first = first->next;
+    current = current->next;
   }
   
   return false;
