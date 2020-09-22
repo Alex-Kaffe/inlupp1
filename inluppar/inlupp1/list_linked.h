@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include "iterator.h"
 
 #define HAS_ERROR()      (errno == EINVAL)
 #define SUCCESS(v)       (errno = 0)
@@ -13,6 +14,11 @@ typedef void(*ioopm_apply_char_function)(int *value, void *extra); //TODO, make 
 /// @brief Creates a new list with 1 dummy-link.
 /// @return an empty linked list
 ioopm_list_t *ioopm_linked_list_create();
+
+/// @brief Create an iterator for a given list
+/// @param the list to be iterated over
+/// @return an iteration positioned at the start of list
+ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list);
 
 /// @brief Tear down the linked list and return all its memory (but not the memory of the elements)
 /// @param list the list to be destroyed

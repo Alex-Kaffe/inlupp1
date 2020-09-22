@@ -325,14 +325,177 @@ void test_clear_empty() {
   ioopm_linked_list_destroy(list);
 }
 
+//////    TEST: ITERATOR
+
+void test_iterator_create_destroy() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  CU_ASSERT_PTR_NOT_NULL(iterator);
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_has_next() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  
+  ioopm_linked_list_append(list, 52);
+  
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  CU_ASSERT_TRUE(ioopm_iterator_has_next(iterator));
+  
+  ioopm_iterator_destroy(iterator);
+  
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_next() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_next_invalid() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_remove() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_remove_update() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_remove_update_first() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_remove_update_last() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_insert() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_insert_update() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_insert_update_first() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_insert_update_last() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_reset() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_current() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_iterator_current_invalid() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  
+  
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
+  CU_pSuite test_suite2 = NULL;
 
   if (CUE_SUCCESS != CU_initialize_registry())
     return CU_get_error();
 
   test_suite1 = CU_add_suite("Linked list", init_suite, clean_suite);
   if (NULL == test_suite1) {
+    CU_cleanup_registry();
+    return CU_get_error();
+  }
+  
+  test_suite2 = CU_add_suite("Iterator", init_suite, clean_suite);
+  if (NULL == test_suite2) {
     CU_cleanup_registry();
     return CU_get_error();
   }
@@ -358,7 +521,28 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it applies a function to all elements and updates the values", test_apply_all)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to an empty linked list", test_apply_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it clears a non empty linked list", test_clear)) 
-   ) {
+  ) {
+    CU_cleanup_registry();
+    return CU_get_error();
+  }
+  
+  if (
+    (NULL == CU_add_test(test_suite2, "it creates and returns a pointer to an allocated iterator", test_iterator_create_destroy)) ||
+    (NULL == CU_add_test(test_suite2, "it returns true or false based on if the iterator has a next", test_iterator_has_next)) ||
+    (NULL == CU_add_test(test_suite2, "it returns the value of the next element in the linked list", test_iterator_next)) ||
+    (NULL == CU_add_test(test_suite2, "it gives an error when trying to get the next element when there are none", test_iterator_next_invalid)) ||
+    (NULL == CU_add_test(test_suite2, "it removes an element from the linked list", test_iterator_remove)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after removing", test_iterator_remove_update)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after removing the first element", test_iterator_remove_update_first)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after removing the last element", test_iterator_remove_update_last)) ||
+    (NULL == CU_add_test(test_suite2, "it inserts links into the linked list", test_iterator_insert)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after inserting", test_iterator_insert_update)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after prepending", test_iterator_insert_update_first)) ||
+    (NULL == CU_add_test(test_suite2, "it updates the current element in the iterator after appending", test_iterator_insert_update_last)) ||
+    (NULL == CU_add_test(test_suite2, "it resets the iterator to the start of the linked list", test_iterator_reset)) ||
+    (NULL == CU_add_test(test_suite2, "it returns the value of the current iterator element", test_iterator_current)) ||
+    (NULL == CU_add_test(test_suite2, "it gives an error when getting the current value before calling iterator_next", test_iterator_current_invalid))
+  ) {
     CU_cleanup_registry();
     return CU_get_error();
   }

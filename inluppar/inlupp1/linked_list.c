@@ -18,6 +18,11 @@ struct list {
   int size;
 };
 
+struct iter {
+  link_t *current;
+  ioopm_list_t *list;
+};
+
 static void link_destroy(link_t *link) {
   free(link);
 }
@@ -266,3 +271,28 @@ void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun
   }
 }
 
+ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list){
+  ioopm_list_iterator_t *result = calloc(1, sizeof(ioopm_list_iterator_t));
+  
+  *result = (ioopm_list_iterator_t){
+    .current = list->first,
+  };
+  
+  return result;
+}
+
+bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
+  return iter->current != NULL;
+}
+
+int ioopm_iterator_current(ioopm_list_iterator_t *iter){
+  return iter->current->value;
+}
+
+void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
+  free(iter);
+}
+
+void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
+  iter->current = iter->list->first;
+}
