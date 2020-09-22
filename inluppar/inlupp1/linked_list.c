@@ -101,11 +101,70 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
+  
   //Vad händer om vi skickar in ett index-värde större än size?
+  //Svar: Vi sätter den sist woop woop
+  if (index >= list->size) {
+    ioopm_linked_list_append(list, value);
+  } else if (index <= 0) {
+    ioopm_linked_list_prepend(list, value);
+  } else {
+    link_t *first      = list->first;
+    link_t *prev_link  = first->next;
+    
+    //Iterate until we're at the key before our chosen index.
+    while (index != 1) {
+      prev_link = prev_link->next;
+      index--;
+    }
+    
+    //Extract our new values next link.
+    link_t *next     = prev_link->next;
+    
+    link_t *new_link = link_create(value, next);
+    //Put our new link at chosen index.
+    prev_link->next  = new_link;
+    //Increment size of list by 1.
+    list->size++;
+  }
 }
 
 int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
-  return 0;
+  // TODO: RENSKRIV DEN HÄR SKITKODEN
+  if (index < 0 || index >= list->size){
+    FAILURE();
+    return -1;
+  }
+  
+  link_t *next_link;
+  link_t *prev_link = list->first->next;
+  int removed_value;
+  
+  if (index == 0){
+    removed_value = list->first->next->value;
+    prev_link     = list->first;
+    next_link     = prev_link->next->next;
+    free(prev_link->next);
+    prev_link->next = next_link;
+    list->size--;
+    
+    SUCCESS();
+    return removed_value;
+  }
+  
+  
+  while (index != 1){
+    prev_link = prev_link->next;
+    index--;
+  }
+  next_link = prev_link->next->next;
+  removed_value = prev_link->next->value;
+  free(prev_link->next);
+  prev_link->next = next_link;
+  list->size--;
+  
+  SUCCESS();
+  return removed_value;
 }
 
 int ioopm_linked_list_size(ioopm_list_t *list) {
@@ -117,32 +176,54 @@ bool ioopm_linked_list_is_empty(ioopm_list_t *list) {
 }
 
 void ioopm_linked_list_clear(ioopm_list_t *list) {
-  int size = list->size;
+  //Save the dummy node.
   link_t *first = list->first;
-
-  while (size != 0) {
-
+  link_t *link  = first->next;
+  link_t *tmp;
+  
+  //destroy each link whilst decrementing the size of list by 1.
+  while (list->size != 0) {
+    tmp = link->next;
+    link_destroy(link);
+    link = tmp;
+    list->size--;
   }
+  
+  //Set dummy-nodes next to NULL to avoid leaks, and set last pointer to dummy.
+  first->next = NULL;
+  list->last = first;
 }
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   link_t *first = list->first;
   link_t *last  = list->last;
 
-  if (first->value == value || last->value == value){
-    return true;
-  }
   while(first != NULL) {
-    if (first-> value == value) {
+    if (first->value == value) {
       return true;
     }
 
     first = first->next;
   }
-
+  
   return false;
 }
 
 int ioopm_linked_list_get(ioopm_list_t *list, int index) {
-  return 0;
+  //TODO RENSKRIV SKITEN
+  if (index < 0 || index >= list->size){
+    FAILURE(); 
+    return -1;
+  }
+  
+  link_t *link = list->first->next;
+  
+  
+  while (index != 0){
+    link = link->next;
+    index--;
+  }
+  
+  SUCCESS();
+  return link->value;
 }

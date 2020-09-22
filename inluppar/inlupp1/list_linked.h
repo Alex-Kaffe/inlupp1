@@ -1,6 +1,10 @@
 #pragma once
 #include <stdbool.h>
 
+#define HAS_ERROR()      (errno == EINVAL)
+#define SUCCESS(v)       (errno = 0)
+#define FAILURE(v)       (errno = EINVAL)
+
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
 typedef bool(*ioopm_char_predicate)(int key, char *value, void *extra);
