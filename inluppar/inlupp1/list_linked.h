@@ -7,8 +7,8 @@
 
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
-typedef bool(*ioopm_char_predicate)(int key, char *value, void *extra);
-typedef void(*ioopm_apply_char_function)(int key, char **value, void *extra);
+typedef bool(*ioopm_char_predicate)(int value, void *extra); //TODO, make them the correct type;
+typedef void(*ioopm_apply_char_function)(int *value, void *extra); //TODO, make them the correct type;
 
 /// @brief Creates a new list with 1 dummy-link.
 /// @return an empty linked list

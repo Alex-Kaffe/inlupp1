@@ -27,9 +27,9 @@ static link_t *link_create(int value, link_t *next) {
   link_t *result = calloc(1, sizeof(link_t));
 
   // The allocated memory is filled with the new entry.
-  *result = (link_t){
+  *result  = (link_t){
     .value = value,
-    .next = next,
+    .next  = next,
   };
 
   return result;
@@ -37,15 +37,15 @@ static link_t *link_create(int value, link_t *next) {
 
 ioopm_list_t *ioopm_linked_list_create() {
   ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
-  link_t *dummy = link_create(0, NULL);
+  link_t *dummy        = link_create(0, NULL);
 
   // Create an empty hash table and assign to the allocated memory
-  *result = (ioopm_list_t){
+  *result  = (ioopm_list_t){
     //Borde vi inte sätta så att dummy-first pekar på dummy-last?
     // Och vi borde kunna se till så att dummy-last försvinner när vi skapar en ny med append, annars hamnar den mitt i smeten?
     .first = dummy,
-    .last = dummy,
-    .size = 0,
+    .last  = dummy,
+    .size  = 0,
   };
 
   return result;
@@ -57,7 +57,7 @@ void ioopm_linked_list_destroy(ioopm_list_t *list) {
   link_t *tmp;
 
   while (link != NULL) {
-    tmp = link->next;
+    tmp  = link->next;
     link_destroy(link);
     link = tmp;
   }
@@ -72,7 +72,7 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
     // If the size is 0, first and last points to the dummy link
     list->first->next = new_link;
   } else {
-    list->last->next = new_link;
+    list->last->next  = new_link;
   }
 
   // Make sure to always update the last pointer when appending
@@ -232,3 +232,37 @@ int ioopm_linked_list_get(ioopm_list_t *list, int index) {
   SUCCESS();
   return link->value;
 }
+
+bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_char_predicate prop, void *extra){
+  link_t *link = list->first->next;
+  
+  while (link != NULL){
+    if (!prop(link->value, extra)) return false;
+    
+    link = link->next;
+  }
+  
+  return true;
+}
+
+bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_char_predicate prop, void *extra){
+  link_t *link = list->first->next;
+  
+  while (link != NULL) {
+    if (prop(link->value, extra)) return true;
+    
+    link = link->next;
+  }
+  
+  return false;
+}
+
+void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun, void *extra){
+  link_t *link = list->first->next;
+  
+  while(link != NULL){
+    fun(&link->value, extra);
+    link = link->next;
+  }
+}
+

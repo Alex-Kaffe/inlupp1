@@ -295,7 +295,7 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
     entry_t *entry = ht->buckets[i];
 
     while(entry != NULL) {
-      if(pred(entry->key, entry->value, arg)) {
+      if (pred(entry->key, entry->value, arg)) {
         return true;
       }
 

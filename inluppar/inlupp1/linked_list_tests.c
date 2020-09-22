@@ -25,6 +25,14 @@ void assert_link_index(ioopm_list_t *list, int index, int value) {
   CU_ASSERT_EQUAL(ioopm_linked_list_get(list, index), value);
 }
 
+bool value_equiv(int value, void *extra) {
+  return value == *((int*)extra);
+}
+
+void update_value(int *value, void *extra) {
+  *value = *((int*)extra);
+}
+
 void test_create_destroy() {
   ioopm_list_t *list = ioopm_linked_list_create();
 
@@ -251,6 +259,64 @@ void test_clear() {
   ioopm_linked_list_destroy(list);
 }
 
+void test_all() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int initial_value = 420;
+
+  ioopm_linked_list_append(list, initial_value);
+  ioopm_linked_list_append(list, initial_value);
+  ioopm_linked_list_append(list, initial_value);
+  CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &initial_value));
+
+  ioopm_linked_list_append(list, 1337);
+
+  CU_ASSERT_FALSE(ioopm_linked_list_all(list, value_equiv, &initial_value));
+
+  ioopm_linked_list_destroy(list);
+}
+
+void test_all_empty() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int value = 200;
+
+  CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &value));
+
+  ioopm_linked_list_destroy(list);
+}
+
+void test_apply_all() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int initial_value = 420;
+  int new_value = 1337;
+
+  ioopm_linked_list_append(list, initial_value);
+  ioopm_linked_list_append(list, initial_value);
+  ioopm_linked_list_append(list, initial_value);
+  CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &initial_value));
+
+  ioopm_linked_apply_to_all(list, update_value, &new_value);
+
+  CU_ASSERT_FALSE(ioopm_linked_list_all(list, value_equiv, &initial_value));
+  CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &new_value));
+  
+  ioopm_linked_list_destroy(list);
+}
+
+void test_apply_all_empty() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int new_value = 1337;
+
+  ioopm_linked_apply_to_all(list, update_value, &new_value);
+
+  CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &new_value));
+  
+  ioopm_linked_list_destroy(list);
+}
+
 void test_clear_empty() {
   ioopm_list_t *list = ioopm_linked_list_create();
   
@@ -286,7 +352,12 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it removes links from the linked list", test_remove)) ||
     (NULL == CU_add_test(test_suite1, "it gives an error when removing invalid indices", test_remove_empty)) ||
     (NULL == CU_add_test(test_suite1, "it clears an empty linked list", test_clear_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it clears an non empty linked list", test_clear)) 
+    (NULL == CU_add_test(test_suite1, "it returns true if all values matches the predicate", test_all)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty linked list", test_all_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty linked list", test_all_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it applies a function to all elements and updates the values", test_apply_all)) ||
+    (NULL == CU_add_test(test_suite1, "it applies a function to an empty linked list", test_apply_all_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it clears a non empty linked list", test_clear)) 
    ) {
     CU_cleanup_registry();
     return CU_get_error();
