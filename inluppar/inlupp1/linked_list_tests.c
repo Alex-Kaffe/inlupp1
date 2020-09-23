@@ -166,6 +166,16 @@ void test_insert() {
     assert_link_index(list, i, values[i]);
   }
 
+  // Insert elements into the middle of the list
+  // and make sure that the values get added correctly
+  ioopm_linked_list_insert(list, 2, 300);
+  assert_link_added(list, 300, 4);
+  assert_link_index(list, 2, 300);
+
+  ioopm_linked_list_insert(list, 2, 500);
+  assert_link_added(list, 500, 5);
+  assert_link_index(list, 2, 500);
+
   ioopm_linked_list_destroy(list);
 }
 

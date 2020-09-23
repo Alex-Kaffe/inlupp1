@@ -58,6 +58,24 @@ static int remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) {
   return value;
 }
 
+/// @brief Checks if an index is in the range of [0..n-1]
+static bool is_valid_index(ioopm_list_t *list, int index) {
+  return (index >= 0 && index < ioopm_linked_list_size(list));
+}
+
+static link_t *get_link_for_previous_index(link_t *start, int index) {
+  link_t *previous = start;
+
+  // We want to go through the linked list index - 1 times
+  // to get the previous link
+  while (index != 1) {
+    previous = previous->next;
+    index--;
+  }
+
+  return previous;
+}
+
 ioopm_list_t *ioopm_linked_list_create() {
   ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
   link_t *dummy        = link_create(0, NULL);
@@ -124,45 +142,32 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
-  //Vad händer om vi skickar in ett index-värde större än size?
-  //Svar: Vi sätter den sist woop woop
+  // TODO: Throw error on invalid index instead?
   if (index >= list->size) {
     ioopm_linked_list_append(list, value);
-  } else if (index <= 0) {
+  } else if (index <= 0 || ioopm_linked_list_size(list) == 0) {
     ioopm_linked_list_prepend(list, value);
   } else {
-    link_t *first      = list->first;
-    link_t *prev_link  = first->next;
+    link_t *previous = get_link_for_previous_index(list->first->next, index);
 
-    //Iterate until we're at the key before our chosen index.
-    while (index != 1) {
-      prev_link = prev_link->next;
-      index--;
-    }
-
-    //Extract our new values next link.
-    link_t *next     = prev_link->next;
-
-    link_t *new_link = link_create(value, next);
     //Put our new link at chosen index.
-    prev_link->next  = new_link;
-    //Increment size of list by 1.
+    link_t *new_link = link_create(value, previous->next);
+    previous->next = new_link;
+
     list->size++;
   }
 }
 
 int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
-  int size = ioopm_linked_list_size(list);
-
   // Make sure that the index is in the range [0..n-1]
   // and that we have at least one element in the linked list
-  if (index < 0 || index >= size){
+  if (!is_valid_index(list, index)){
     FAILURE();
     return -1;
   }
 
   int removed_value;
-  bool should_update_last = false;
+  link_t *previous;
   link_t *dummy = list->first;
 
   // We know that if this code runs, the size must be >= 1
@@ -174,24 +179,14 @@ int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
   if (index == 0) {
     removed_value = remove_link(list, dummy, current);
   } else {
+    previous = get_link_for_previous_index(current, index);
+
     // Check if the last pointer in ioopm_list_t should be updated
-    should_update_last = index == size - 1;
-
-    // Find the previous link to the one we want to remove.
-    // We only have to check until index == 1 to get the previous element
-    // since we will only go [0..index-1] steps
-    while (index != 1) {
-      current = current->next;
-      index--;
+    if (index == ioopm_linked_list_size(list) - 1) {
+      list->last = previous;
     }
 
-    // Update the last pointer to be the previous link
-    if (should_update_last) {
-      list->last = current;
-    }
-
-    // Since current refers to the previous link, current->next will never be NULL
-    removed_value = remove_link(list, current, current->next);
+    removed_value = remove_link(list, previous, previous->next);
   }
 
   SUCCESS();
@@ -247,14 +242,12 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
 }
 
 int ioopm_linked_list_get(ioopm_list_t *list, int index) {
-  //TODO RENSKRIV SKITEN
-  if (index < 0 || index >= list->size){
+  if (!is_valid_index(list, index)) {
     FAILURE();
     return -1;
   }
 
   link_t *link = list->first->next;
-
 
   while (index != 0){
     link = link->next;
