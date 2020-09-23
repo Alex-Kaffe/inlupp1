@@ -64,6 +64,11 @@ static bool is_valid_index(ioopm_list_t *list, int index) {
   return (index >= 0 && index < ioopm_linked_list_size(list));
 }
 
+/// @brief Checks if an iterator has a current value/the user has called ioopm_iterator_next
+static bool iterator_has_current(ioopm_list_iterator_t *iter) {
+  return iter->index != -1;  
+}
+
 static link_t *get_link_from_index(ioopm_list_t *list, int index) {
   link_t *previous = list->first->next;
 
@@ -320,7 +325,7 @@ bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
 }
 
 int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
-  if (iter->current == iter->list->first) {
+  if (!iterator_has_current(iter)) {
     FAILURE();
     return 0;
   }
@@ -338,21 +343,37 @@ void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
   iter->current = iter->list->first;
 }
 
-// void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value){
-//   ioopm_linked_list_insert(iter->list, iter->index, value);
-//   iter->current = get_link_from_index(iter->current, iter->index);
-// }
+void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
+  if (!iterator_has_current(iter)) {
+    ioopm_linked_list_prepend(iter->list, value);
+    ioopm_iterator_next(iter);
+  } else {
+    ioopm_linked_list_insert(iter->list, iter->index, value);
+    iter->current = get_link_from_index(iter->list, iter->index);
+  }
+}
 
-// int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
-//   link_t *next_link = iter->current->next;
-//   int rem_value = iter->current->value;
-//   ioopm_linked_list_remove(iter->list, iter->index);
+int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
+  if (!iterator_has_current(iter)){
+    FAILURE();
+    return 0;
+  }
   
-//   iter->current = next_link;
-//   iter->list->size--;
+  link_t *next_link = iter->current->next;
+  int remove_value = ioopm_linked_list_remove(iter->list, iter->index);
   
-//   return rem_value;
-// }
+  if (iter->index == iter->list->size) {
+    // If we are at the last index, removing the current element means that
+    // we must shift 1 step to the left
+    iter->current = iter->list->last;
+    iter->index--;
+  } else {
+    iter->current = next_link;
+  }
+  
+  SUCCESS();
+  return remove_value;
+}
 
 /*
 void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {

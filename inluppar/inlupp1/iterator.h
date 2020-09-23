@@ -10,13 +10,11 @@ bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter);
 /// @return the next element
 int ioopm_iterator_next(ioopm_list_iterator_t *iter);
 
-/// NOTE: REMOVE IS OPTIONAL TO IMPLEMENT 
 /// @brief Remove the current element from the underlying list
 /// @param iter the iterator
 /// @return the removed element
 int ioopm_iterator_remove(ioopm_list_iterator_t *iter);
 
-/// NOTE: INSERT IS OPTIONAL TO IMPLEMENT 
 /// @brief Insert a new element into the underlying list making the current element it's next
 /// @param iter the iterator
 /// @param element the element to be inserted
