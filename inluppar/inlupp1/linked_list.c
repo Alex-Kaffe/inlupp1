@@ -40,6 +40,24 @@ static link_t *link_create(int value, link_t *next) {
   return result;
 }
 
+/// @brief Removes a link from the linked list and deallocates the memory
+/// @param list the list to remove a link from
+/// @param previous the previous link to the link that should be removed (may not be NULL)
+/// @param remove the link to be removed (may not be NULL)
+static int remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) {
+  // Save the value of the link that should be removed
+  int value = remove->value;
+
+  // Update the previous next pointer to point to the element after
+  // the removed element or NULL (if the removed element is the last)
+  previous->next = remove->next;
+  list->size--;
+
+  link_destroy(remove);
+
+  return value;
+}
+
 ioopm_list_t *ioopm_linked_list_create() {
   ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
   link_t *dummy        = link_create(0, NULL);
@@ -115,16 +133,16 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
   } else {
     link_t *first      = list->first;
     link_t *prev_link  = first->next;
-    
+
     //Iterate until we're at the key before our chosen index.
     while (index != 1) {
       prev_link = prev_link->next;
       index--;
     }
-    
+
     //Extract our new values next link.
     link_t *next     = prev_link->next;
-    
+
     link_t *new_link = link_create(value, next);
     //Put our new link at chosen index.
     prev_link->next  = new_link;
@@ -134,39 +152,48 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
 }
 
 int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
-  // TODO: RENSKRIV DEN HÄR SKITKODEN
-  if (index < 0 || index >= list->size){
+  int size = ioopm_linked_list_size(list);
+
+  // Make sure that the index is in the range [0..n-1]
+  // and that we have at least one element in the linked list
+  if (index < 0 || index >= size){
     FAILURE();
     return -1;
   }
-  
-  link_t *next_link;
-  link_t *prev_link = list->first->next;
+
   int removed_value;
-  
-  if (index == 0){
-    removed_value = list->first->next->value;
-    prev_link     = list->first;
-    next_link     = prev_link->next->next;
-    free(prev_link->next);
-    prev_link->next = next_link;
-    list->size--;
-    
-    SUCCESS();
-    return removed_value;
+  bool should_update_last = false;
+  link_t *dummy = list->first;
+
+  // We know that if this code runs, the size must be >= 1
+  // and therefore there must be at least one non-dummy entry
+  link_t *current = dummy->next;
+
+  // If the first index is specified, we simply remove that element
+  // directly, rather than going through the entire list
+  if (index == 0) {
+    removed_value = remove_link(list, dummy, current);
+  } else {
+    // Check if the last pointer in ioopm_list_t should be updated
+    should_update_last = index == size - 1;
+
+    // Find the previous link to the one we want to remove.
+    // We only have to check until index == 1 to get the previous element
+    // since we will only go [0..index-1] steps
+    while (index != 1) {
+      current = current->next;
+      index--;
+    }
+
+    // Update the last pointer to be the previous link
+    if (should_update_last) {
+      list->last = current;
+    }
+
+    // Since current refers to the previous link, current->next will never be NULL
+    removed_value = remove_link(list, current, current->next);
   }
-  
-  
-  while (index != 1){
-    prev_link = prev_link->next;
-    index--;
-  }
-  next_link = prev_link->next->next;
-  removed_value = prev_link->next->value;
-  free(prev_link->next);
-  prev_link->next = next_link;
-  list->size--;
-  
+
   SUCCESS();
   return removed_value;
 }
@@ -184,7 +211,7 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
   link_t *first = list->first;
   link_t *link  = first->next;
   link_t *tmp;
-  
+
   //destroy each link whilst decrementing the size of list by 1.
   while (list->size != 0) {
     tmp = link->next;
@@ -192,7 +219,7 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
     link = tmp;
     list->size--;
   }
-  
+
   //Set dummy-nodes next to NULL to avoid leaks, and set last pointer to dummy.
   first->next = NULL;
   list->last = first;
@@ -206,7 +233,7 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   if (first->value == value || last->value == value) {
     return true;
   }
-  
+
   current = first->next;
   while(current != NULL) {
     if (current->value == value) {
@@ -215,56 +242,56 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
 
     current = current->next;
   }
-  
+
   return false;
 }
 
 int ioopm_linked_list_get(ioopm_list_t *list, int index) {
   //TODO RENSKRIV SKITEN
   if (index < 0 || index >= list->size){
-    FAILURE(); 
+    FAILURE();
     return -1;
   }
-  
+
   link_t *link = list->first->next;
-  
-  
+
+
   while (index != 0){
     link = link->next;
     index--;
   }
-  
+
   SUCCESS();
   return link->value;
 }
 
 bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_char_predicate prop, void *extra){
   link_t *link = list->first->next;
-  
+
   while (link != NULL){
     if (!prop(link->value, extra)) return false;
-    
+
     link = link->next;
   }
-  
+
   return true;
 }
 
 bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_char_predicate prop, void *extra){
   link_t *link = list->first->next;
-  
+
   while (link != NULL) {
     if (prop(link->value, extra)) return true;
-    
+
     link = link->next;
   }
-  
+
   return false;
 }
 
 void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun, void *extra){
   link_t *link = list->first->next;
-  
+
   while(link != NULL){
     fun(&link->value, extra);
     link = link->next;
@@ -273,11 +300,11 @@ void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun
 
 ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list){
   ioopm_list_iterator_t *result = calloc(1, sizeof(ioopm_list_iterator_t));
-  
+
   *result = (ioopm_list_iterator_t){
     .current = list->first,
   };
-  
+
   return result;
 }
 

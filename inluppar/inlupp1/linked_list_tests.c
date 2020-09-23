@@ -14,7 +14,7 @@ int clean_suite(void) {
   return 0;
 }
 
-// TODO: Assert the value of HAS_ERROR() after running ioopm_linked_list_remove 
+// TODO: Assert the value of HAS_ERROR() after running ioopm_linked_list_remove
 
 void assert_link_added(ioopm_list_t *list, int value, int expected_size) {
   CU_ASSERT_TRUE(ioopm_linked_list_contains(list, value));
@@ -49,7 +49,7 @@ void test_get() {
 
   ioopm_linked_list_append(list, 420);
   CU_ASSERT_EQUAL_FATAL(ioopm_linked_list_get(list, 0), 420);
-  
+
   ioopm_linked_list_append(list, 1337);
   CU_ASSERT_EQUAL_FATAL(ioopm_linked_list_get(list, 1), 1337);
 
@@ -61,10 +61,10 @@ void test_get_invalid() {
 
   ioopm_linked_list_get(list, 0);
   CU_ASSERT_TRUE_FATAL(HAS_ERROR());
-  
+
   ioopm_linked_list_get(list, -1);
   CU_ASSERT_TRUE_FATAL(HAS_ERROR());
-  
+
   ioopm_linked_list_get(list, 100);
   CU_ASSERT_TRUE_FATAL(HAS_ERROR());
 
@@ -96,17 +96,17 @@ void test_size_insert() {
 
 void test_size_remove() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   ioopm_linked_list_append(list, 100);
   ioopm_linked_list_append(list, 200);
   ioopm_linked_list_append(list, 300);
-  
+
   ioopm_linked_list_remove(list, 2);
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 2);
 
   ioopm_linked_list_remove(list, 1);
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 1);
-  
+
   ioopm_linked_list_remove(list, 0);
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 0);
 
@@ -161,7 +161,7 @@ void test_insert() {
 
   for (int i = 0; i < values_length; i++) {
     ioopm_linked_list_insert(list, i, values[i]);
-    
+
     // Make sure that the value gets added to the correct index
     assert_link_index(list, i, values[i]);
   }
@@ -171,16 +171,16 @@ void test_insert() {
 
 void test_insert_too_large() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   // Make sure that when inserting a value at an index that is larger than
   // the next index (e.g inserting at index 2 when we only have 1 element),
   // the new value gets added to the correct index
   ioopm_linked_list_insert(list, 999, 100);
   assert_link_index(list, 0, 100);
-  
+
   ioopm_linked_list_insert(list, 999, 200);
   assert_link_index(list, 1, 200);
-  
+
   ioopm_linked_list_destroy(list);
 }
 
@@ -189,30 +189,30 @@ void test_insert_too_small() {
 
   ioopm_linked_list_insert(list, -100, 100);
   assert_link_index(list, 0, 100);
-  
+
   ioopm_linked_list_insert(list, -100, 200);
   assert_link_index(list, 0, 200);
-  
+
   ioopm_linked_list_destroy(list);
 }
 
 void test_remove() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   int removed_value;
-  
-  ioopm_linked_list_append(list, 100); 
+
+  ioopm_linked_list_append(list, 100);
   ioopm_linked_list_append(list, 200);
   ioopm_linked_list_append(list, 300);
-  
+
   // Remove the value 200
   removed_value = ioopm_linked_list_remove(list, 1);
   CU_ASSERT_EQUAL(removed_value, 200);
   CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 200));
-  
+
   // Make sure that the last value has shifted to index 1 instead of 2
   CU_ASSERT_EQUAL(ioopm_linked_list_get(list, 1), 300);
-  
+
   // Try removing the invalid index and check that we get an error
   ioopm_linked_list_remove(list, 2);
   CU_ASSERT_TRUE(HAS_ERROR());
@@ -220,16 +220,45 @@ void test_remove() {
   ioopm_linked_list_destroy(list);
 }
 
+void test_remove_edges() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+
+  int removed_value;
+
+  ioopm_linked_list_append(list, 100);
+  ioopm_linked_list_append(list, 200);
+  ioopm_linked_list_append(list, 300);
+
+  removed_value = ioopm_linked_list_remove(list, 0);
+  CU_ASSERT_EQUAL(removed_value, 100);
+  CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 100));
+
+  CU_ASSERT_EQUAL(ioopm_linked_list_get(list, 0), 200);
+
+  // Remove the last element
+  removed_value = ioopm_linked_list_remove(list, 1);
+  CU_ASSERT_EQUAL(removed_value, 300);
+  CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 300));
+
+  CU_ASSERT_EQUAL(ioopm_linked_list_get(list, 0), 200);
+
+  // Make sure that the last value has been removed
+  ioopm_linked_list_get(list, 1);
+  CU_ASSERT_TRUE(HAS_ERROR());
+
+  ioopm_linked_list_destroy(list);
+}
+
 void test_remove_empty() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   // Try removing non existant indices, as well as invalid indices (e.g -1)
   ioopm_linked_list_remove(list, 0);
   CU_ASSERT_TRUE(HAS_ERROR());
-  
+
   ioopm_linked_list_remove(list, -1);
   CU_ASSERT_TRUE(HAS_ERROR());
-  
+
   ioopm_linked_list_remove(list, 20);
   CU_ASSERT_TRUE(HAS_ERROR());
 
@@ -238,24 +267,24 @@ void test_remove_empty() {
 
 void test_clear() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 0);
-  
+
   ioopm_linked_list_append(list, 100);
   ioopm_linked_list_append(list, 200);
   ioopm_linked_list_append(list, 300);
-   
+
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 3);
-  
+
   ioopm_linked_list_clear(list);
-  
+
   // Make sure that all elements has been deleted and that
   // the size has updated correctly
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 0);
   CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 100));
   CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 200));
   CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 300));
-   
+
   ioopm_linked_list_destroy(list);
 }
 
@@ -301,7 +330,7 @@ void test_apply_all() {
 
   CU_ASSERT_FALSE(ioopm_linked_list_all(list, value_equiv, &initial_value));
   CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &new_value));
-  
+
   ioopm_linked_list_destroy(list);
 }
 
@@ -313,15 +342,15 @@ void test_apply_all_empty() {
   ioopm_linked_apply_to_all(list, update_value, &new_value);
 
   CU_ASSERT_TRUE(ioopm_linked_list_all(list, value_equiv, &new_value));
-  
+
   ioopm_linked_list_destroy(list);
 }
 
 void test_clear_empty() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   ioopm_linked_list_clear(list);
-  
+
   ioopm_linked_list_destroy(list);
 }
 
@@ -330,33 +359,33 @@ void test_clear_empty() {
 void test_iterator_create_destroy() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
+
   CU_ASSERT_PTR_NOT_NULL(iterator);
-  
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
 
 void test_iterator_has_next() {
   ioopm_list_t *list = ioopm_linked_list_create();
-  
+
   ioopm_linked_list_append(list, 52);
-  
+
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
+
   CU_ASSERT_TRUE(ioopm_iterator_has_next(iterator));
-  
+
   ioopm_iterator_destroy(iterator);
-  
+
   ioopm_linked_list_destroy(list);
 }
 
 void test_iterator_next() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -364,9 +393,9 @@ void test_iterator_next() {
 void test_iterator_next_invalid() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -374,9 +403,9 @@ void test_iterator_next_invalid() {
 void test_iterator_remove() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -384,9 +413,9 @@ void test_iterator_remove() {
 void test_iterator_remove_update() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -394,9 +423,9 @@ void test_iterator_remove_update() {
 void test_iterator_remove_update_first() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -404,9 +433,9 @@ void test_iterator_remove_update_first() {
 void test_iterator_remove_update_last() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -414,9 +443,9 @@ void test_iterator_remove_update_last() {
 void test_iterator_insert() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -424,9 +453,9 @@ void test_iterator_insert() {
 void test_iterator_insert_update() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -434,9 +463,9 @@ void test_iterator_insert_update() {
 void test_iterator_insert_update_first() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -444,9 +473,9 @@ void test_iterator_insert_update_first() {
 void test_iterator_insert_update_last() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -454,9 +483,9 @@ void test_iterator_insert_update_last() {
 void test_iterator_reset() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -464,9 +493,9 @@ void test_iterator_reset() {
 void test_iterator_current() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -474,9 +503,9 @@ void test_iterator_current() {
 void test_iterator_current_invalid() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  
-  
-  
+
+
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
@@ -493,7 +522,7 @@ int main() {
     CU_cleanup_registry();
     return CU_get_error();
   }
-  
+
   test_suite2 = CU_add_suite("Iterator", init_suite, clean_suite);
   if (NULL == test_suite2) {
     CU_cleanup_registry();
@@ -513,6 +542,7 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it appends links when specifying an index greater or equal to the size", test_insert_too_large)) ||
     (NULL == CU_add_test(test_suite1, "it prepends links when specifying an index smaller than 0", test_insert_too_small)) ||
     (NULL == CU_add_test(test_suite1, "it removes links from the linked list", test_remove)) ||
+    (NULL == CU_add_test(test_suite1, "it removes the first and last links from the linked list", test_remove_edges)) ||
     (NULL == CU_add_test(test_suite1, "it gives an error when removing invalid indices", test_remove_empty)) ||
     (NULL == CU_add_test(test_suite1, "it clears an empty linked list", test_clear_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns true if all values matches the predicate", test_all)) ||
@@ -520,12 +550,12 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty linked list", test_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all elements and updates the values", test_apply_all)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to an empty linked list", test_apply_all_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it clears a non empty linked list", test_clear)) 
+    (NULL == CU_add_test(test_suite1, "it clears a non empty linked list", test_clear))
   ) {
     CU_cleanup_registry();
     return CU_get_error();
   }
-  
+
   if (
     (NULL == CU_add_test(test_suite2, "it creates and returns a pointer to an allocated iterator", test_iterator_create_destroy)) ||
     (NULL == CU_add_test(test_suite2, "it returns true or false based on if the iterator has a next", test_iterator_has_next)) ||
