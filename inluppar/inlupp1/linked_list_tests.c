@@ -390,21 +390,48 @@ void test_iterator_has_next() {
   ioopm_linked_list_destroy(list);
 }
 
+
 void test_iterator_next() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
+  //Prepend 3 values to the list
+  ioopm_linked_list_prepend(list, 42);
+  ioopm_linked_list_prepend(list, 240);
+  ioopm_linked_list_prepend(list, 420);
 
+  CU_ASSERT(ioopm_iterator_has_next(iterator));
+  
+  int x = ioopm_iterator_next(iterator);
 
+  CU_ASSERT_EQUAL(ioopm_linked_list_get(list, 0), x);
+  
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }
+
 
 void test_iterator_next_invalid() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
+  //Prepend 3 values to the list
+  ioopm_linked_list_prepend(list, 42);
+  ioopm_linked_list_prepend(list, 240);
 
+  ioopm_iterator_next(iterator);
+  int last_value = ioopm_iterator_next(iterator);
+  
+  // Make sure that no error has been thrown
+  CU_ASSERT_FALSE(HAS_ERROR());
+  
+  // Make sure that calling next when we are already on the last element
+  // gives us an error
+  ioopm_iterator_next(iterator);
+  CU_ASSERT_TRUE(HAS_ERROR());
+  
+  // Make sure that the current link was not updated 
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), last_value);
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -414,7 +441,7 @@ void test_iterator_remove() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
-
+  
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -493,8 +520,26 @@ void test_iterator_insert_update_last() {
 void test_iterator_reset() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-
-
+  
+  int dummy = ioopm_iterator_current(iterator);
+  
+  int first_val = 1;
+  //Append 4 values 0 to 3 into the list.
+  for (int i = 1 ; i < 5 ; i++){
+    ioopm_linked_list_append(list, i);
+  }
+  //Iterate through twice.
+  ioopm_iterator_next(iterator);
+  ioopm_iterator_next(iterator);
+  
+  //Assert that first_val != iters value
+  CU_ASSERT_NOT_EQUAL(first_val, ioopm_iterator_current(iterator));
+  
+  //Reset the iter.
+  ioopm_iterator_reset(iterator);
+  
+  //Assert that the iter value == first_val
+  CU_ASSERT_EQUAL(dummy, ioopm_iterator_current(iterator));
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -504,7 +549,18 @@ void test_iterator_current() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
+  ioopm_linked_list_append(list, 100);
+  ioopm_linked_list_append(list, 200);
+  ioopm_linked_list_append(list, 300);
 
+  CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 100);
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 100);
+  
+  CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 200);
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 200);
+
+  CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 300);
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 300);
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -513,9 +569,20 @@ void test_iterator_current() {
 void test_iterator_current_invalid() {
   ioopm_list_t *list = ioopm_linked_list_create();
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
+  // TODO: Should current return the dummy value if empty?
+  ioopm_iterator_current(iterator);
+  CU_ASSERT_TRUE(HAS_ERROR());
 
-
-
+  ioopm_linked_list_append(list, 100);
+  CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 100);
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 100);
+  
+  // Make sure that current does not update after calling next
+  // while already on the last element
+  ioopm_iterator_next(iterator);
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 100);
+  
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
 }

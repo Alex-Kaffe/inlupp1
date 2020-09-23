@@ -19,6 +19,7 @@ struct list {
 };
 
 struct iter {
+  int index;
   link_t *current;
   ioopm_list_t *list;
 };
@@ -291,21 +292,45 @@ void ioopm_linked_apply_to_all(ioopm_list_t *list, ioopm_apply_char_function fun
   }
 }
 
-ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list){
+ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
   ioopm_list_iterator_t *result = calloc(1, sizeof(ioopm_list_iterator_t));
 
+  //Set the current pointer to dummy at start.
   *result = (ioopm_list_iterator_t){
     .current = list->first,
+    .index = -1,
+    .list = list,
   };
 
   return result;
 }
 
-bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
-  return iter->current != NULL;
+int ioopm_iterator_next(ioopm_list_iterator_t *iter) {
+  if (ioopm_iterator_has_next(iter)){
+    iter->index++;
+    iter->current = iter->current->next;
+    
+    SUCCESS();
+    return iter->current->value;
+  }
+  
+  //Errno if there is no next link.
+  FAILURE();
+  return 0;
 }
 
-int ioopm_iterator_current(ioopm_list_iterator_t *iter){
+
+bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
+  return iter->current->next != NULL;
+}
+
+int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
+  if (iter->current == iter->list->first) {
+    FAILURE();
+    return 0;
+  }
+  
+  SUCCESS();
   return iter->current->value;
 }
 
@@ -314,5 +339,42 @@ void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
 }
 
 void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
+  iter->index = -1;
   iter->current = iter->list->first;
 }
+
+// void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value){
+//   ioopm_linked_list_insert(iter->list, iter->index, value);
+//   iter->current = get_link_from_index(iter->current, iter->index);
+// }
+
+// int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
+//   link_t *next_link = iter->current->next;
+//   int rem_value = iter->current->value;
+//   ioopm_linked_list_remove(iter->list, iter->index);
+  
+//   iter->current = next_link;
+//   iter->list->size--;
+  
+//   return rem_value;
+// }
+
+/*
+void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
+  link_t *new_link = link_create(value, iter->current);
+  
+  iter->previous->next = new_link;
+  iter->current = new_link;
+}
+
+int ioopm_iterator_remove(ioopm_list_iterator_t *iter, int index){
+  link_t* next_link    = iter->current->next;
+  iter->previous->next = next_link;
+  
+  link_destroy(iter->current);
+  iter->current = next_link;
+  
+  iter->list->size--;
+  
+  return 0;
+}*/
