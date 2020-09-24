@@ -6,12 +6,8 @@
 #define HAS_ERROR()      (errno == EINVAL)
 #define SUCCESS(v)       (errno = 0)
 #define FAILURE(v)       (errno = EINVAL)
-/*
-typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
-typedef struct elem elem_t;
-*/
-
+typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 typedef bool(*ioopm_char_predicate)(int value, void *extra); //TODO, make them the correct type;
 typedef void(*ioopm_apply_char_function)(int *value, void *extra); //TODO, make them the correct type;
 
