@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
+
+#include "list_linked.h"
 #include "hash_table.h"
 
 #define NO_BUCKETS 17
@@ -212,33 +214,26 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
   }
 }
 
-int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
-  int iteration = 0;
+ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
   size_t size = ioopm_hash_table_size(ht);
 
-  // Allocate memory for an empty keys array (storing only the termination value -1)
-  int *keys = calloc(size + 1, sizeof(int)); // reserve one element for the termination value
-
+  ioopm_list_t *list = ioopm_linked_list_create();
   entry_t *current;
 
   for (int i = 0 ; i < NO_BUCKETS; i++) {
     current = ht->buckets[i]->next;
 
     while (current != NULL) {
-      keys[iteration] = current->key;
+      ioopm_linked_list_append(list, current->key);
       current = current->next;
-      iteration++;
     }
   }
 
-  // Set the termination value
-  keys[size] = -1;
-
-  return keys;
+  return list;
 }
 
 char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
-  int iteration = 0;
+  size_t iteration = 0;
   size_t size = ioopm_hash_table_size(ht);
 
   // Allocate memory for an empty values array (storing only the termination value NULL)

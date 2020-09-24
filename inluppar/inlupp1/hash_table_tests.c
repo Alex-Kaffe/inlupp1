@@ -56,28 +56,23 @@ void assert_insert_and_remove(ioopm_hash_table_t *ht, int key, char *value) {
   assert_remove(ht, key);
 }
 
-void assert_keys_array_terminates(int *keys, int keys_size) {
-  int termination_value = -1;
-  CU_ASSERT_EQUAL(keys[keys_size], termination_value);
-}
-
 void assert_values_array_terminates(char **values, int values_size) {
   CU_ASSERT_PTR_NULL(values[values_size]);
 }
 
 void assert_keys_array(ioopm_hash_table_t *ht, int *expected_keys, int expected_size) {
-  int *keys = ioopm_hash_table_keys(ht);
+  ioopm_list_t *keys = ioopm_hash_table_keys(ht);
 
-  assert_keys_array_terminates(keys, expected_size);
-
+  CU_ASSERT_EQUAL(ioopm_linked_list_size(keys), expected_size);
+  
   for (int i = 0; i < expected_size; i++) {
     // Make sure that all keys are present in the keys array
     // and that they are in the expected order.
-    CU_ASSERT_EQUAL(keys[i], expected_keys[i]);
+    CU_ASSERT_EQUAL(ioopm_linked_list_get(keys, i), expected_keys[i]);
   }
 
   // Make sure to clean up the allocated keys array
-  free(keys);
+  ioopm_linked_list_destroy(keys);
 }
 
 void assert_values_array(ioopm_hash_table_t *ht, char *expected_values[], int expected_size) {
@@ -353,6 +348,8 @@ void test_hash_table_keys() {
   }
 
   assert_keys_array(ht, expected_keys, expected_size);
+  
+  CU_ASSERT_EQUAL(ioopm_hash_table_size(ht), expected_size);
 
   ioopm_hash_table_destroy(ht);
 }
