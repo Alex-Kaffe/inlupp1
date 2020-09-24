@@ -66,7 +66,7 @@ static bool is_valid_index(ioopm_list_t *list, int index) {
 
 /// @brief Checks if an iterator has a current value/the user has called ioopm_iterator_next
 static bool iterator_has_current(ioopm_list_iterator_t *iter) {
-  return iter->index != -1;
+  return iter->current != NULL;
 }
 
 static link_t *get_link_from_index(ioopm_list_t *list, int index) {
@@ -297,8 +297,8 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
 
   //Set the current pointer to dummy at start.
   *result = (ioopm_list_iterator_t){
-    .current = list->first,
-    .index = -1,
+    .current = list->first->next,
+    .index = 0,
     .list = list,
   };
 
@@ -320,7 +320,26 @@ int ioopm_iterator_next(ioopm_list_iterator_t *iter) {
 }
 
 bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
-  return iter->current->next != NULL;
+  return iter->current != NULL && iter->current->next != NULL;
+}
+
+void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
+  free(iter);
+}
+
+void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
+  iter->index = 0;
+  iter->current = iter->list->first->next;
+}
+
+void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
+  if (!iterator_has_current(iter)) {
+    ioopm_linked_list_prepend(iter->list, value);
+    iter->current = iter->list->first->next;
+  } else {
+    ioopm_linked_list_insert(iter->list, iter->index, value);
+    iter->current = get_link_from_index(iter->list, iter->index);
+  }
 }
 
 int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
@@ -331,26 +350,6 @@ int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
 
   SUCCESS();
   return iter->current->value;
-}
-
-void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
-  free(iter);
-}
-
-void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
-  iter->index = -1;
-  iter->current = iter->list->first;
-}
-
-void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
-  if (!iterator_has_current(iter)) {
-    FAILURE();
-    return;
-  }
-
-  ioopm_linked_list_insert(iter->list, iter->index, value);
-  iter->current = get_link_from_index(iter->list, iter->index);
-  SUCCESS();
 }
 
 int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
