@@ -15,11 +15,11 @@ struct link {
 struct list {
   link_t *first;
   link_t *last;
-  int size;
+  size_t size;
 };
 
 struct iter {
-  int index;
+  size_t index;
   link_t *current;
   ioopm_list_t *list;
 };
@@ -60,7 +60,7 @@ static int remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) {
 }
 
 /// @brief Checks if an index is in the range of [0..n-1]
-static bool is_valid_index(ioopm_list_t *list, int index) {
+static bool is_valid_index(ioopm_list_t *list, size_t index) {
   return (index >= 0 && index < ioopm_linked_list_size(list));
 }
 
@@ -69,7 +69,7 @@ static bool iterator_has_current(ioopm_list_iterator_t *iter) {
   return iter->current != NULL;
 }
 
-static link_t *get_link_from_index(ioopm_list_t *list, int index) {
+static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
 
   // We want to go through the linked list index - 1 times
@@ -147,7 +147,7 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
   list->size++;
 }
 
-void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
+void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, int value) {
   // If invalid index, return failure.
   if (index > list->size || index < 0){
     FAILURE();
@@ -156,7 +156,7 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
   
   if (index == list->size) {
     ioopm_linked_list_append(list, value);
-    //If the index is 0, or the list is empty, prepend the 
+    //If the index is 0, or the list is empty, prepend the value.
   } else if (index == 0 || ioopm_linked_list_size(list) == 0) {
     ioopm_linked_list_prepend(list, value);
   } else {
@@ -172,7 +172,7 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
   SUCCESS();
 }
 
-int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
+int ioopm_linked_list_remove(ioopm_list_t *list, size_t index) {
   // Make sure that the index is in the range [0..n-1]
   // and that we have at least one element in the linked list
   if (!is_valid_index(list, index)){
@@ -207,7 +207,7 @@ int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
   return removed_value;
 }
 
-int ioopm_linked_list_size(ioopm_list_t *list) {
+size_t ioopm_linked_list_size(ioopm_list_t *list) {
   return list->size;
 }
 
@@ -258,7 +258,7 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   return false;
 }
 
-int ioopm_linked_list_get(ioopm_list_t *list, int index) {
+int ioopm_linked_list_get(ioopm_list_t *list, size_t index) {
   //if the linked list doesn't have that index, set errno to EINVAL and return.
   if (!is_valid_index(list, index)) {
     FAILURE();

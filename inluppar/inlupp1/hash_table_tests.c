@@ -18,7 +18,7 @@ int clean_suite(void) {
 }
 
 void assert_hash_table_size(ioopm_hash_table_t *ht, int expected_size) {
-  int size = ioopm_hash_table_size(ht);
+  size_t size = ioopm_hash_table_size(ht);
 
   CU_ASSERT_EQUAL(size, expected_size);
 }

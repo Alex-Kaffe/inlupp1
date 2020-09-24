@@ -163,8 +163,8 @@ char *ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key){
   return str;
 }
 
-int ioopm_hash_table_size(ioopm_hash_table_t *ht) {
-  int counter = 0;
+size_t ioopm_hash_table_size(ioopm_hash_table_t *ht) {
+  size_t counter = 0;
   entry_t *current_entry;
 
   for (int i = 0; i < NO_BUCKETS ; i++) {
@@ -214,7 +214,7 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 
 int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
   int iteration = 0;
-  int size = ioopm_hash_table_size(ht);
+  size_t size = ioopm_hash_table_size(ht);
 
   // Allocate memory for an empty keys array (storing only the termination value -1)
   int *keys = calloc(size + 1, sizeof(int)); // reserve one element for the termination value
@@ -239,7 +239,7 @@ int *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
 
 char **ioopm_hash_table_values(ioopm_hash_table_t *ht) {
   int iteration = 0;
-  int size = ioopm_hash_table_size(ht);
+  size_t size = ioopm_hash_table_size(ht);
 
   // Allocate memory for an empty values array (storing only the termination value NULL)
   char **values = calloc(size + 1, sizeof(char*));
