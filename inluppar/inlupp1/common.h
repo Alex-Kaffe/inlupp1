@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define int_elem(x) (ioopm_elem_t) { .i = (x) }
-#define ptr_elem(x) (ioopm_elem_t) { .p = (x) }
+#define int_elem(x) (elem_t) { .i = (x) }
+#define ptr_elem(x) (elem_t) { .p = (x) }
 
 #define HAS_ERROR() (errno == EINVAL)
 #define SUCCESS(v)  (errno = 0)
@@ -24,7 +24,7 @@ typedef struct elem elem_t;
 
 //
 struct elem {
-  int _int;
+  int i;
   unsigned int unsigned_int;
   bool b;
   float f;
