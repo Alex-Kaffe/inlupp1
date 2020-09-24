@@ -70,6 +70,7 @@ static bool iterator_has_current(ioopm_list_iterator_t *iter) {
   return iter->current != NULL;
 }
 
+/// @param index the index to get from list (must be a valid index [0..n-1])
 static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
 
@@ -117,14 +118,10 @@ void ioopm_linked_list_destroy(ioopm_list_t *list) {
 void ioopm_linked_list_append(ioopm_list_t *list, int value) {
   link_t *new_link = link_create(value, NULL);
 
-  if (ioopm_linked_list_size(list) == 0) {
-    // If the size is 0, first and last points to the dummy link
-    list->first->next = new_link;
-  } else {
-    list->last->next  = new_link;
-  }
-
-  // Make sure to always update the last pointer when appending
+  // No need to handle the case where the list is empty, since
+  // in that case first and last is the same (dummy entry) and updating
+  // one of them will ultimately update both
+  list->last->next  = new_link;
   list->last = new_link;
 
   list->size++;
@@ -133,17 +130,7 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
 void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
   link_t *new_link = link_create(value, NULL);
 
-  if (ioopm_linked_list_size(list) == 0) {
-    //if the size is 0, prepend is the same as append, put it after the dummy which is always first.
-    list->last = new_link;
-    list->first->next = new_link;
-  } else {
-    // Put the first link in the list in the new_links next-pointer.
-    link_t *old_first = list->first->next;
-    new_link->next = old_first;
-  }
-
-  //update the pointer to be next;
+  new_link->next = list->first->next;
   list->first->next = new_link;
   list->size++;
 }
@@ -154,22 +141,21 @@ void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, int value) {
     FAILURE();
     return;
   }
-  
+
   if (index == list->size) {
     ioopm_linked_list_append(list, value);
-    //If the index is 0, or the list is empty, prepend the value.
   } else if (index == 0 || ioopm_linked_list_size(list) == 0) {
     ioopm_linked_list_prepend(list, value);
   } else {
     link_t *previous = get_link_from_index(list, index - 1);
 
-    //Put our new link at chosen index.
+    // Insert new link at the chosen index
     link_t *new_link = link_create(value, previous->next);
     previous->next = new_link;
 
     list->size++;
   }
-  //Sucessful.
+
   SUCCESS();
 }
 
@@ -236,7 +222,6 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
 }
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
-  
   link_t *first = list->first;
   link_t *last = list->last;
   link_t *current;
