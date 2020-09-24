@@ -14,6 +14,9 @@ int clean_suite(void) {
   return 0;
 }
 
+
+
+
 // TODO: Assert the value of HAS_ERROR() after running ioopm_linked_list_remove
 
 void assert_link_added(ioopm_list_t *list, int value, int expected_size) {
@@ -74,7 +77,7 @@ void test_get_invalid() {
 }
 
 void test_size_empty() {
-  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_t *list = ioopm_linked_list_create(eq_elem_int);
 
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), 0);
 

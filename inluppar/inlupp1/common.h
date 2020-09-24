@@ -18,11 +18,8 @@ typedef struct iter ioopm_list_iterator_t;
 
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
-
 typedef struct elem elem_t;
 
-
-//
 struct elem {
   int i;
   unsigned int unsigned_int;
@@ -30,3 +27,14 @@ struct elem {
   float f;
   void *p;
 };
+
+bool eq_elem_int(elem_t a, elem_t b){
+  return a.i == b.i;
+}
+
+bool eq_elem_string(elem_t a, elem_t b){
+  void *p1 = a.p;
+  void *p2 = b.p;
+  
+  return strcmp((char *)p1, (char *)p2) == 0;
+}
