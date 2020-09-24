@@ -103,6 +103,7 @@ void ioopm_linked_list_destroy(ioopm_list_t *list) {
   link_t *link = list->first;
   link_t *tmp;
 
+  //iterate through the list, destroying each link.
   while (link != NULL) {
     tmp  = link->next;
     link_destroy(link);
@@ -129,7 +130,6 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
-  // TODO: Jag har satt den här så att dummyn alltid behålls
   link_t *new_link = link_create(value, NULL);
 
   if (ioopm_linked_list_size(list) == 0) {
@@ -148,10 +148,16 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
-  // TODO: Throw error on invalid index instead?
-  if (index >= list->size) {
+  // If invalid index, return failure.
+  if (index > list->size || index < 0){
+    FAILURE();
+    return;
+  }
+  
+  if (index == list->size) {
     ioopm_linked_list_append(list, value);
-  } else if (index <= 0 || ioopm_linked_list_size(list) == 0) {
+    //If the index is 0, or the list is empty, prepend the 
+  } else if (index == 0 || ioopm_linked_list_size(list) == 0) {
     ioopm_linked_list_prepend(list, value);
   } else {
     link_t *previous = get_link_from_index(list, index - 1);
@@ -162,6 +168,8 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value) {
 
     list->size++;
   }
+  //Sucessful.
+  SUCCESS();
 }
 
 int ioopm_linked_list_remove(ioopm_list_t *list, int index) {
@@ -227,10 +235,13 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
 }
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
+  
   link_t *first = list->first;
   link_t *last = list->last;
   link_t *current;
 
+  //Check first if the first or last value is what we search for.
+  //This makes for a better time-complexity in a best-case scenario.
   if (first->value == value || last->value == value) {
     return true;
   }
@@ -248,6 +259,7 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
 }
 
 int ioopm_linked_list_get(ioopm_list_t *list, int index) {
+  //if the linked list doesn't have that index, set errno to EINVAL and return.
   if (!is_valid_index(list, index)) {
     FAILURE();
     return -1;
@@ -262,7 +274,9 @@ int ioopm_linked_list_get(ioopm_list_t *list, int index) {
 bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_char_predicate prop, void *extra){
   link_t *link = list->first->next;
 
+  //Loop through the linked list, applying the predicate on each element.
   while (link != NULL){
+    //If the predicate isn't valid, return false.
     if (!prop(link->value, extra)) return false;
 
     link = link->next;
@@ -306,6 +320,7 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
 }
 
 int ioopm_iterator_next(ioopm_list_iterator_t *iter) {
+  //Iterator goes to the next link and increase the index by 1.
   if (ioopm_iterator_has_next(iter)){
     iter->index++;
     iter->current = iter->current->next;
@@ -328,21 +343,25 @@ void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
 }
 
 void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
+  //Set index to 0 and reset the iterator on the first index.
   iter->index = 0;
   iter->current = iter->list->first->next;
 }
 
 void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
   if (!iterator_has_current(iter)) {
+    // If the list is empty, prepend the link and set current to it.
     ioopm_linked_list_prepend(iter->list, value);
     iter->current = iter->list->first->next;
   } else {
+    // Insert as usual.
     ioopm_linked_list_insert(iter->list, iter->index, value);
     iter->current = get_link_from_index(iter->list, iter->index);
   }
 }
 
 int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
+  //If the iterator is on an invalid index in a list, set errno to EINVAL.
   if (!iterator_has_current(iter)) {
     FAILURE();
     return 0;
@@ -353,11 +372,13 @@ int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
 }
 
 int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
+  //Errno if removal on a link that doesn't exist.
   if (!iterator_has_current(iter)){
     FAILURE();
     return 0;
   }
 
+  //Save the next link.
   link_t *next_link = iter->current->next;
   int remove_value = ioopm_linked_list_remove(iter->list, iter->index);
 
@@ -367,6 +388,7 @@ int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
     iter->current = iter->list->last;
     iter->index--;
   } else {
+    //After removal, the links to the right shifts one step to the left.
     iter->current = next_link;
   }
 

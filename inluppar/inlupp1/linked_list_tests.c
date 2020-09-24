@@ -49,9 +49,11 @@ void test_get() {
 
   ioopm_linked_list_append(list, 420);
   CU_ASSERT_EQUAL_FATAL(ioopm_linked_list_get(list, 0), 420);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   ioopm_linked_list_append(list, 1337);
   CU_ASSERT_EQUAL_FATAL(ioopm_linked_list_get(list, 1), 1337);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   ioopm_linked_list_destroy(list);
 }
@@ -162,6 +164,8 @@ void test_insert() {
   for (int i = 0; i < values_length; i++) {
     ioopm_linked_list_insert(list, i, values[i]);
 
+    CU_ASSERT_FALSE(HAS_ERROR());
+
     // Make sure that the value gets added to the correct index
     assert_link_index(list, values[i], i);
   }
@@ -179,29 +183,40 @@ void test_insert() {
   ioopm_linked_list_destroy(list);
 }
 
-void test_insert_too_large() {
+void test_insert_out_of_bounds() {
   ioopm_list_t *list = ioopm_linked_list_create();
 
   // Make sure that when inserting a value at an index that is larger than
   // the next index (e.g inserting at index 2 when we only have 1 element),
   // the new value gets added to the correct index
   ioopm_linked_list_insert(list, 999, 100);
-  assert_link_index(list, 100, 0);
-
-  ioopm_linked_list_insert(list, 999, 200);
-  assert_link_index(list, 200, 1);
+  CU_ASSERT_TRUE(HAS_ERROR());
 
   ioopm_linked_list_destroy(list);
 }
 
-void test_insert_too_small() {
+void test_insert_first() {
   ioopm_list_t *list = ioopm_linked_list_create();
 
-  ioopm_linked_list_insert(list, -100, 100);
+  ioopm_linked_list_insert(list, 0, 100);
+  CU_ASSERT_FALSE(HAS_ERROR());
+  assert_link_added(list, 100, 1);
   assert_link_index(list, 100, 0);
 
-  ioopm_linked_list_insert(list, -100, 200);
-  assert_link_index(list, 200, 0);
+  ioopm_linked_list_destroy(list);
+}
+
+void test_insert_last() {
+  ioopm_list_t *list = ioopm_linked_list_create();
+  
+  ioopm_linked_list_append(list, 100);
+  ioopm_linked_list_append(list, 200);
+  ioopm_linked_list_append(list, 300);
+
+  ioopm_linked_list_insert(list, 3, 400);
+  CU_ASSERT_FALSE(HAS_ERROR());
+  assert_link_added(list, 400, 4);
+  assert_link_index(list, 400, 3);
 
   ioopm_linked_list_destroy(list);
 }
@@ -217,6 +232,7 @@ void test_remove() {
 
   // Remove the value 200
   removed_value = ioopm_linked_list_remove(list, 1);
+  CU_ASSERT_FALSE(HAS_ERROR());
   CU_ASSERT_EQUAL(removed_value, 200);
   CU_ASSERT_FALSE(ioopm_linked_list_contains(list, 200));
 
@@ -404,7 +420,10 @@ void test_iterator_next() {
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
   CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 240);
+  CU_ASSERT_FALSE(HAS_ERROR());
+  
   CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 420);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -447,6 +466,7 @@ void test_iterator_remove() {
   // Remove the second element
   ioopm_iterator_next(iterator);
   ioopm_iterator_remove(iterator);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   // Assert that the list has been shifted once to the left
   // and that the list has been updated
@@ -640,12 +660,15 @@ void test_iterator_current() {
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
 
   CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 100);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 200);
   CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 200);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   CU_ASSERT_EQUAL(ioopm_iterator_next(iterator), 300);
   CU_ASSERT_EQUAL(ioopm_iterator_current(iterator), 300);
+  CU_ASSERT_FALSE(HAS_ERROR());
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(list);
@@ -691,8 +714,9 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it appends links into the linked list", test_append)) ||
     (NULL == CU_add_test(test_suite1, "it prepends links into the linked list", test_prepend)) ||
     (NULL == CU_add_test(test_suite1, "it inserts links into the linked list at the specified index", test_insert)) ||
-    (NULL == CU_add_test(test_suite1, "it appends links when specifying an index greater or equal to the size", test_insert_too_large)) ||
-    (NULL == CU_add_test(test_suite1, "it prepends links when specifying an index smaller than 0", test_insert_too_small)) ||
+    (NULL == CU_add_test(test_suite1, "it gives an error when inserting at an invalid index", test_insert_out_of_bounds)) ||
+    (NULL == CU_add_test(test_suite1, "it prepends links when specifying an index equal to 0", test_insert_first)) ||
+    (NULL == CU_add_test(test_suite1, "it appends links when specifying an index equal to the current size", test_insert_last)) ||
     (NULL == CU_add_test(test_suite1, "it removes links from the linked list", test_remove)) ||
     (NULL == CU_add_test(test_suite1, "it removes the first and last links from the linked list", test_remove_edges)) ||
     (NULL == CU_add_test(test_suite1, "it gives an error when removing invalid indices", test_remove_empty)) ||
