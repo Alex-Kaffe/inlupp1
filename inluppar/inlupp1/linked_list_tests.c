@@ -4,7 +4,7 @@
 #include <string.h>
 #include <CUnit/Basic.h>
 
-#include "list_linked.h"
+#include "linked_list.h"
 
 int init_suite(void) {
   return 0;

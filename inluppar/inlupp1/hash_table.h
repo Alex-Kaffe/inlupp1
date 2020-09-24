@@ -1,9 +1,10 @@
 #pragma once
 #include <stdbool.h>
 #include <string.h>
-#include "list_linked.h"
+#include "linked_list.h"
+#include "common.h"
 
-/**
+/** 
  * @file hash_table.h
  * @author Fredrik Engstrand, Alex Alstergren
  * @date 1 Sep 2019
@@ -20,7 +21,7 @@
 #define SUCCESS(v)       (errno = 0)
 #define FAILURE(v)       (errno = EINVAL)
 
-typedef struct hash_table ioopm_hash_table_t;
+//typedef struct hash_table ioopm_hash_table_t;
 typedef bool(*ioopm_predicate)(int key, char *value, void *extra);
 typedef void(*ioopm_apply_function)(int key, char **value, void *extra);
 

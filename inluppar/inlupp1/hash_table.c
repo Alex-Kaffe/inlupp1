@@ -3,12 +3,14 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#include "list_linked.h"
+#include "linked_list.h"
 #include "hash_table.h"
+#include "common.h"
 
 #define NO_BUCKETS 17
 
 typedef struct entry entry_t;
+//TODO: STEP 12.3 Add Const to all functions;
 
 // Errors when looking up a key will be saved into the global 'errno' variable
 extern int errno;
@@ -22,6 +24,7 @@ struct entry {
 struct hash_table {
   entry_t *buckets[NO_BUCKETS];
 };
+
 
 static entry_t *entry_create(int key, char *value, entry_t *next){
   // Allocate memory for the new entry.
@@ -215,8 +218,6 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 }
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
-  size_t size = ioopm_hash_table_size(ht);
-
   ioopm_list_t *list = ioopm_linked_list_create();
   entry_t *current;
 

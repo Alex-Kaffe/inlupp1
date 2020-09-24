@@ -5,6 +5,7 @@
 #include <string.h>
 #include <CUnit/Basic.h>
 
+#include "common.h"
 #include "hash_table.h"
 
 // TODO: Should we define a global constant to be the amount of buckets?

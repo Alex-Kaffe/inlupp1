@@ -1,4 +1,8 @@
-typedef struct iter ioopm_list_iterator_t;
+#include <stdbool.h>
+#include "common.h"
+
+
+//typedef struct iter ioopm_list_iterator_t;
 
 /// @brief Checks if there are more elements to iterate over
 /// @param iter the iterator
