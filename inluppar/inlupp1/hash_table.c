@@ -60,18 +60,21 @@ static bool is_valid_key(elem_t key) {
 }
 
 static bool key_equiv(elem_t key, elem_t value_ignored, void *x) {
-  return key.i == *((int*)x);
+  elem_t extra = *(elem_t*)x;
+  return key.i == extra.i;
 }
 
 static bool value_equiv(elem_t key, elem_t value, void *x) {
-  char *extra_value = (char*)x;
-  char *real_value  = (char*)value.p;
+  elem_t extra_value = *(elem_t*)x;
   
-  if (real_value == NULL || extra_value == NULL) {
-    return real_value == extra_value;
+  char *a = value.p;
+  char *b = extra_value.p;
+  
+  if (a == NULL || b == NULL) {
+    return a == b;
   }
 
-  return strcmp(real_value, extra_value) == 0;
+  return strcmp(a, b) == 0;
 }
 
 static int extract_int_hash_key(elem_t key) {
@@ -84,9 +87,9 @@ ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_func, ioopm_has
   ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
   
   if (hash_func == NULL) {
-    result->hash_func = hash_func; 
-  } else {
     result->hash_func = extract_int_hash_key;
+  } else {
+    result->hash_func = hash_func; 
   }
 
   for (int i = 0 ; i < NO_BUCKETS ; i++){
@@ -130,7 +133,7 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   }
 
   FAILURE();
-  return int_elem(0);
+  return ptr_elem(NULL);
 }
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
@@ -159,7 +162,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
 elem_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key){
   if (!is_valid_key(key)) {
     FAILURE();
-    return int_elem(0);
+    return ptr_elem(NULL);
   }
 
   elem_t value = ioopm_hash_table_lookup(ht, key);
@@ -168,7 +171,7 @@ elem_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key){
   if (HAS_ERROR()) {
     // No need to call FAILURE macro since errno already is set to EINVAL after
     // calling 'ioopm_hash_table_lookup'
-    return int_elem(0);
+    return ptr_elem(NULL);
   }
 
   entry_t *previous_entry = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], key);
@@ -232,7 +235,6 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 }
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
-  // TODO: Put in the correct eq_func
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
   entry_t *current;
 
@@ -249,7 +251,6 @@ ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
 }
 
 ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
-  // TODO: Put in the correct eq_func
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
   entry_t *current;
 

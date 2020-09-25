@@ -22,13 +22,6 @@ void assert_elem_int_equal(elem_t a, int b) {
   CU_ASSERT_TRUE(eq_elem_int(a, int_elem(b)));
 }
 
-bool eq_elem_string(elem_t a, elem_t b){
-  void *p1 = a.p;
-  void *p2 = b.p;
-  
-  return strcmp((char *)p1, (char *)p2) == 0;
-}
-
 void assert_link_added(ioopm_list_t *list, elem_t value, size_t expected_size) {
   CU_ASSERT_TRUE(ioopm_linked_list_contains(list, value));
   CU_ASSERT_EQUAL(ioopm_linked_list_size(list), expected_size);
