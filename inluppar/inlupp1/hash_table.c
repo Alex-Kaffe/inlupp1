@@ -24,6 +24,7 @@ struct entry {
 struct hash_table {
   entry_t *buckets[NO_BUCKETS];
   ioopm_eq_function eq_func;
+  ioopm_hash_function hash_func;
 };
 
 static entry_t *entry_create(elem_t key, elem_t value, entry_t *next){
@@ -43,11 +44,11 @@ static void entry_destroy(entry_t *entry){
   free(entry);
 }
 
-static entry_t *find_previous_entry_for_key(ioopm_eq_function eq_func, entry_t *entry, elem_t key) {
+static entry_t *find_previous_entry_for_key(ioopm_hash_function hash_func, entry_t *entry, elem_t key) {
   entry_t *current = entry;
 
   //Söker igenom tills next == null, eller om nästa i tablen har nyckeln som vi ska sätta in.
-  while (current->next != NULL && !eq_func(current->next->key, key)) {
+  while (current->next != NULL && hash_func(current->next->key) != hash_func(key)) {
     current = current->next;
   }
 
@@ -73,10 +74,20 @@ static bool value_equiv(elem_t key, elem_t value, void *x) {
   return strcmp(real_value, extra_value) == 0;
 }
 
-ioopm_hash_table_t *ioopm_hash_table_create() {
+static int extract_int_hash_key(elem_t key) {
+  return key.i; 
+}
+
+ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_func, ioopm_hash_function hash_func) {
   // Allocate space for a ioopm_hash_table_t = NO_BUCKETS pointers to
   // entry_t's, which will be set to NULL
   ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+  
+  if (hash_func == NULL) {
+    result->hash_func = hash_func; 
+  } else {
+    result->hash_func = extract_int_hash_key;
+  }
 
   for (int i = 0 ; i < NO_BUCKETS ; i++){
     //Create a dummy value in each bucket with some random values (they will never be read) 
@@ -107,8 +118,9 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
 
 elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   if (is_valid_key(key)) {
-    /// Find the previous entry for key
-    entry_t *tmp = find_previous_entry_for_key(ht->eq_func, ht->buckets[key.i % NO_BUCKETS], key);
+    int bucket = ht->hash_func(key) % NO_BUCKETS;
+    
+    entry_t *tmp = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], key);
     entry_t *next = tmp->next;
 
     if (next && next->key.i == key.i) {
@@ -128,9 +140,10 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
   }
 
   /// Calculate the bucket for this entry
-  int bucket = key.i % NO_BUCKETS;
+  int bucket = ht->hash_func(key) % NO_BUCKETS;
+  
   /// Search for an existing entry for a key
-  entry_t *entry = find_previous_entry_for_key(ht->eq_func, ht->buckets[bucket], key);
+  entry_t *entry = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], key);
   entry_t *next = entry->next;
 
   /// Check if the next entry should be updated or not
@@ -158,7 +171,7 @@ elem_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key){
     return int_elem(0);
   }
 
-  entry_t *previous_entry = find_previous_entry_for_key(ht->eq_func, ht->buckets[bucket], key);
+  entry_t *previous_entry = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], key);
   entry_t *current_entry = previous_entry->next;
 
   previous_entry->next = current_entry->next;
