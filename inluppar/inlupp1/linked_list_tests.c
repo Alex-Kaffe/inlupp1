@@ -38,8 +38,6 @@ void assert_link_index(ioopm_list_t *list, elem_t value, size_t index) {
   CU_ASSERT_TRUE(eq_elem_int(ioopm_linked_list_get(list, index), value));
 }
 
-// Vi kan skicka eq_elem_string och eq_elem_int istället för value_equiv.
-
 bool value_equiv(elem_t value, void *extra) {
   return eq_elem_int(value, *((elem_t*)extra));
 }
