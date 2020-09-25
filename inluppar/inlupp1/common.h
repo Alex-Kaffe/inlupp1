@@ -28,6 +28,7 @@ struct elem {
   void *p;
 };
 
+/*
 bool eq_elem_int(elem_t a, elem_t b){
   return a.i == b.i;
 }
@@ -37,4 +38,4 @@ bool eq_elem_string(elem_t a, elem_t b){
   void *p2 = b.p;
   
   return strcmp((char *)p1, (char *)p2) == 0;
-}
+}*/

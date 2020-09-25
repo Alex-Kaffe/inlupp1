@@ -2,17 +2,17 @@ CC=gcc
 CFLAGS=-ggdb -Wall
 CFLAGS_LIB=-c
 
-linked_list.o: linked_list.c
-	gcc $(CFLAGS) $(CFLAGS_LIB) $^
+linked_list.o: linked_list.c common.h
+	gcc $(CFLAGS) $(CFLAGS_LIB) linked_list.c
 
-hash_table.o: linked_list.o hash_table.c
-	gcc $(CFLAGS) $(CFLAGS_LIB) $^
+hash_table.o: linked_list.o hash_table.c common.h
+	gcc $(CFLAGS) $(CFLAGS_LIB) linked_list.o hash_table.c
 
-hash_table_tests.o: linked_list.o hash_table.o hash_table_tests.c
-	gcc $(CFLAGS) $^ -o hash_table_tests.out -lcunit
+hash_table_tests.o: linked_list.o hash_table.o hash_table_tests.c common.h
+	gcc $(CFLAGS) linked_list.o hash_table.o hash_table_tests.c -o hash_table_tests.out -lcunit
 
-linked_list_tests.o: linked_list.o linked_list_tests.c
-	gcc $(CFLAGS) $^ -o linked_list_tests.out -lcunit
+linked_list_tests.o: linked_list.o linked_list_tests.c common.h
+	gcc $(CFLAGS) linked_list.o linked_list_tests.c -o linked_list_tests.out -lcunit
 
 hash_table_tests: hash_table_tests.o
 	./hash_table_tests.out
