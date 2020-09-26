@@ -9,7 +9,7 @@
 typedef struct link link_t;
 
 struct link {
-  int value;
+  elem_t value;
   link_t *next;
 };
 
@@ -17,6 +17,7 @@ struct list {
   link_t *first;
   link_t *last;
   size_t size;
+  ioopm_eq_function eq_func;
 };
 
 struct iter {
@@ -29,7 +30,7 @@ static void link_destroy(link_t *link) {
   free(link);
 }
 
-static link_t *link_create(int value, link_t *next) {
+static link_t *link_create(elem_t value, link_t *next) {
   // Allocate memory for the new entry.
   link_t *result = calloc(1, sizeof(link_t));
 
@@ -46,9 +47,9 @@ static link_t *link_create(int value, link_t *next) {
 /// @param list the list to remove a link from
 /// @param previous the previous link to the link that should be removed (may not be NULL)
 /// @param remove the link to be removed (may not be NULL)
-static int remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) {
+static elem_t remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) {
   // Save the value of the link that should be removed
-  int value = remove->value;
+  elem_t value = remove->value;
 
   // Update the previous next pointer to point to the element after
   // the removed element or NULL (if the removed element is the last)
@@ -84,15 +85,16 @@ static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   return previous;
 }
 
-ioopm_list_t *ioopm_linked_list_create() {
+ioopm_list_t *ioopm_linked_list_create(ioopm_eq_function eq_func) {
   ioopm_list_t *result = calloc(1, sizeof(ioopm_list_t));
-  link_t *dummy        = link_create(0, NULL);
+  link_t *dummy = link_create(int_elem(0), NULL);
 
   // Create an empty hash table and assign to the allocated memory
-  *result  = (ioopm_list_t){
-    .first = dummy,
-    .last  = dummy,
-    .size  = 0,
+  *result = (ioopm_list_t){
+    .first   = dummy,
+    .last    = dummy,
+    .size    = 0,
+    .eq_func = eq_func,
   };
 
   return result;
@@ -113,7 +115,7 @@ void ioopm_linked_list_destroy(ioopm_list_t *list) {
   free(list);
 }
 
-void ioopm_linked_list_append(ioopm_list_t *list, int value) {
+void ioopm_linked_list_append(ioopm_list_t *list, elem_t value) {
   link_t *new_link = link_create(value, NULL);
 
   // No need to handle the case where the list is empty, since
@@ -125,7 +127,7 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
   list->size++;
 }
 
-void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
+void ioopm_linked_list_prepend(ioopm_list_t *list, elem_t value) {
   link_t *new_link = link_create(value, list->first->next);
 
   // Make sure that we update the last pointer if the list is empty
@@ -137,7 +139,7 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
   list->size++;
 }
 
-void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, int value) {
+void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, elem_t value) {
   // If invalid index, return failure.
   if (index > list->size || index < 0){
     FAILURE();
@@ -161,15 +163,15 @@ void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, int value) {
   SUCCESS();
 }
 
-int ioopm_linked_list_remove(ioopm_list_t *list, size_t index) {
+elem_t ioopm_linked_list_remove(ioopm_list_t *list, size_t index) {
   // Make sure that the index is in the range [0..n-1]
   // and that we have at least one element in the linked list
   if (!is_valid_index(list, index)){
     FAILURE();
-    return -1;
+    return int_elem(-1);
   }
 
-  int removed_value;
+  elem_t removed_value;
   link_t *previous;
   link_t *dummy = list->first;
 
@@ -223,20 +225,20 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
   list->last = first;
 }
 
-bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
+bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t value) {
   link_t *first = list->first;
   link_t *last = list->last;
   link_t *current;
 
   //Check first if the first or last value is what we search for.
   //This makes for a better time-complexity in a best-case scenario.
-  if (first->value == value || last->value == value) {
+  if (list->eq_func(first->value, value) || list->eq_func(last->value, value)) {
     return true;
   }
 
   current = first->next;
   while(current != NULL) {
-    if (current->value == value) {
+    if (list->eq_func(current->value, value)) {
       return true;
     }
 
@@ -246,11 +248,11 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, int value) {
   return false;
 }
 
-int ioopm_linked_list_get(ioopm_list_t *list, size_t index) {
+elem_t ioopm_linked_list_get(ioopm_list_t *list, size_t index) {
   //if the linked list doesn't have that index, set errno to EINVAL and return.
   if (!is_valid_index(list, index)) {
     FAILURE();
-    return -1;
+    return int_elem(-1);
   }
 
   link_t *link = get_link_from_index(list, index);
@@ -307,7 +309,7 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
   return result;
 }
 
-int ioopm_iterator_next(ioopm_list_iterator_t *iter) {
+elem_t ioopm_iterator_next(ioopm_list_iterator_t *iter) {
   //Iterator goes to the next link and increase the index by 1.
   if (ioopm_iterator_has_next(iter)){
     iter->index++;
@@ -319,7 +321,7 @@ int ioopm_iterator_next(ioopm_list_iterator_t *iter) {
 
   //Errno if there is no next link.
   FAILURE();
-  return 0;
+  return int_elem(0);
 }
 
 bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
@@ -336,7 +338,7 @@ void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
   iter->current = iter->list->first->next;
 }
 
-void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
+void ioopm_iterator_insert(ioopm_list_iterator_t *iter, elem_t value) {
   if (!iterator_has_current(iter)) {
     // If the list is empty, prepend the link and set current to it.
     ioopm_linked_list_prepend(iter->list, value);
@@ -348,27 +350,27 @@ void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int value) {
   }
 }
 
-int ioopm_iterator_current(ioopm_list_iterator_t *iter) {
+elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter) {
   //If the iterator is on an invalid index in a list, set errno to EINVAL.
   if (!iterator_has_current(iter)) {
     FAILURE();
-    return 0;
+    return int_elem(0);
   }
 
   SUCCESS();
   return iter->current->value;
 }
 
-int ioopm_iterator_remove(ioopm_list_iterator_t *iter){
+elem_t ioopm_iterator_remove(ioopm_list_iterator_t *iter){
   //Errno if removal on a link that doesn't exist.
   if (!iterator_has_current(iter)){
     FAILURE();
-    return 0;
+    return int_elem(0);
   }
 
   //Save the next link.
   link_t *next_link = iter->current->next;
-  int remove_value = ioopm_linked_list_remove(iter->list, iter->index);
+  elem_t remove_value = ioopm_linked_list_remove(iter->list, iter->index);
 
   if (iter->index == iter->list->size) {
     // If we are at the last index, removing the current element means that
