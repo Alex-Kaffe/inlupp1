@@ -25,8 +25,7 @@ struct hash_table {
   entry_t *buckets[NO_BUCKETS];
 };
 
-
-static entry_t *entry_create(int key, char *value, entry_t *next){
+static entry_t *entry_create(int key, char *value, entry_t *next) {
   // Allocate memory for the new entry.
   entry_t *result = calloc(1, sizeof(entry_t));
 
@@ -43,8 +42,7 @@ static void entry_destroy(entry_t *entry){
   free(entry);
 }
 
-static entry_t *find_previous_entry_for_key(entry_t *entry, int key)
-{
+static entry_t *find_previous_entry_for_key(entry_t *entry, int key) {
   entry_t *current = entry;
 
   //Söker igenom tills next == null, eller om nästa i tablen har nyckeln som vi ska sätta in.

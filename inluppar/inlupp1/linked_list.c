@@ -90,8 +90,6 @@ ioopm_list_t *ioopm_linked_list_create() {
 
   // Create an empty hash table and assign to the allocated memory
   *result  = (ioopm_list_t){
-    //Borde vi inte sätta så att dummy-first pekar på dummy-last?
-    // Och vi borde kunna se till så att dummy-last försvinner när vi skapar en ny med append, annars hamnar den mitt i smeten?
     .first = dummy,
     .last  = dummy,
     .size  = 0,
@@ -128,9 +126,13 @@ void ioopm_linked_list_append(ioopm_list_t *list, int value) {
 }
 
 void ioopm_linked_list_prepend(ioopm_list_t *list, int value) {
-  link_t *new_link = link_create(value, NULL);
+  link_t *new_link = link_create(value, list->first->next);
 
-  new_link->next = list->first->next;
+  // Make sure that we update the last pointer if the list is empty
+  if (ioopm_linked_list_size(list) == 0) {
+    list->last = new_link;
+  }
+
   list->first->next = new_link;
   list->size++;
 }

@@ -8,14 +8,20 @@
 #include "common.h"
 #include "hash_table.h"
 
-// TODO: Should we define a global constant to be the amount of buckets?
-
 int init_suite(void) {
   return 0;
 }
 
 int clean_suite(void) {
   return 0;
+}
+
+bool value_equiv(int key, char *value, void *x) {
+  return strcmp(value, (char*)x) == 0;
+}
+
+void change_all_values(int key, char **value, void *x) {
+  *value = (char*)x;
 }
 
 void assert_hash_table_size(ioopm_hash_table_t *ht, int expected_size) {
@@ -65,7 +71,7 @@ void assert_keys_array(ioopm_hash_table_t *ht, int *expected_keys, int expected_
   ioopm_list_t *keys = ioopm_hash_table_keys(ht);
 
   CU_ASSERT_EQUAL(ioopm_linked_list_size(keys), expected_size);
-  
+
   for (int i = 0; i < expected_size; i++) {
     // Make sure that all keys are present in the keys array
     // and that they are in the expected order.
@@ -349,7 +355,7 @@ void test_hash_table_keys() {
   }
 
   assert_keys_array(ht, expected_keys, expected_size);
-  
+
   CU_ASSERT_EQUAL(ioopm_hash_table_size(ht), expected_size);
 
   ioopm_hash_table_destroy(ht);
@@ -559,14 +565,6 @@ void test_hash_table_has_value_null() {
   CU_ASSERT_TRUE(ioopm_hash_table_has_value(ht, value));
 
   ioopm_hash_table_destroy(ht);
-}
-
-bool value_equiv(int key, char *value, void *x) {
-  return strcmp(value, (char*)x) == 0;
-}
-
-void change_all_values(int key, char **value, void *x) {
-  *value = (char*)x;
 }
 
 void test_hash_table_all() {
