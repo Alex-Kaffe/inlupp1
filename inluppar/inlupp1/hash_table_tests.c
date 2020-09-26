@@ -19,6 +19,18 @@ int clean_suite(void) {
   return 0;
 }
 
+// Hash function for strings
+int string_sum_hash(elem_t key) {
+  unsigned int result = 0;
+  char *str = (char*)key.p;
+
+  do {
+    result += *str;
+  } while (*++str != '\0');
+
+  return result;
+}
+
 bool value_equiv(elem_t key, elem_t value, void *x) {
   elem_t extra_value = *(elem_t*)x;
   return strcmp(value.p, extra_value.p) == 0;
@@ -28,7 +40,15 @@ bool eq_elem_string(elem_t a, elem_t b){
   void *p1 = a.p;
   void *p2 = b.p;
 
-  return strcmp((char *)p1, (char *)p2) == 0;
+  if (p1 == NULL && p1 == p2) {
+    return true;
+  }
+
+  return strcmp((char*)p1, (char*)p2) == 0;
+}
+
+bool eq_elem_int(elem_t a, elem_t b) {
+  return a.i == b.i;
 }
 
 void change_all_values(elem_t key, elem_t *value, void *x) {
@@ -631,6 +651,34 @@ void test_hash_table_apply_all() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_hash_function() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, string_sum_hash);
+
+  elem_t keys[] = {
+    ptr_elem("key1"),
+    ptr_elem("key2"),
+    ptr_elem("key3"),
+  };
+
+  elem_t values[] = {
+    int_elem(1),
+    int_elem(2),
+    int_elem(3),
+  };
+
+  elem_t lookup_value;
+
+  for (int i = 0; i < 3; i++) {
+    ioopm_hash_table_insert(ht, keys[i], values[i]);
+    lookup_value = ioopm_hash_table_lookup(ht, keys[i]);
+
+    CU_ASSERT_EQUAL(HAS_ERROR(), false);
+    CU_ASSERT_TRUE(eq_elem_int(lookup_value, values[i]));
+  }
+
+  ioopm_hash_table_destroy(ht);
+}
+
 int main() {
   CU_pSuite test_suite1 = NULL;
 
@@ -677,7 +725,8 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value set to NULL", test_hash_table_has_value_null)) ||
     (NULL == CU_add_test(test_suite1, "it returns true if all entries matches the predicate", test_hash_table_all)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty hash table", test_hash_table_all_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all))
+    (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all)) ||
+    (NULL == CU_add_test(test_suite1, "it can take in the hash function as an argument", test_hash_table_hash_function))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

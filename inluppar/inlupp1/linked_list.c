@@ -213,14 +213,15 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
   link_t *tmp;
 
   //destroy each link whilst decrementing the size of list by 1.
-  while (list->size != 0) {
+  while (link != NULL) {
     tmp = link->next;
     link_destroy(link);
     link = tmp;
-    list->size--;
   }
 
-  //Set dummy-nodes next to NULL to avoid leaks, and set last pointer to dummy.
+  list->size = 0;
+
+  // Set next of dummy node to NULL to avoid memory leaks
   first->next = NULL;
   list->last = first;
 }
@@ -268,7 +269,6 @@ bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_char_predicate prop, void *
   while (link != NULL){
     //If the predicate isn't valid, return false.
     if (!prop(link->value, extra)) return false;
-
     link = link->next;
   }
 
@@ -372,6 +372,8 @@ elem_t ioopm_iterator_remove(ioopm_list_iterator_t *iter){
   link_t *next_link = iter->current->next;
   elem_t remove_value = ioopm_linked_list_remove(iter->list, iter->index);
 
+  // ioopm_linked_list_remove decreases the size by 1, meaning that we must compare
+  // the current iteration index with the current size, not size - 1
   if (iter->index == iter->list->size) {
     // If we are at the last index, removing the current element means that
     // we must shift 1 step to the left

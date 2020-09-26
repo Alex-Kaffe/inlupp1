@@ -217,7 +217,7 @@ void test_insert_first() {
 
 void test_insert_last() {
   ioopm_list_t *list = ioopm_linked_list_create(eq_elem_int);
-  
+
   ioopm_linked_list_append(list, int_elem(100));
   ioopm_linked_list_append(list, int_elem(200));
   ioopm_linked_list_append(list, int_elem(300));
@@ -430,7 +430,7 @@ void test_iterator_next() {
 
   assert_elem_int_equal(ioopm_iterator_next(iterator), 240);
   CU_ASSERT_FALSE(HAS_ERROR());
-  
+
   assert_elem_int_equal(ioopm_iterator_next(iterator), 420);
   CU_ASSERT_FALSE(HAS_ERROR());
 
@@ -510,7 +510,7 @@ void test_iterator_remove_first() {
 
   assert_elem_int_equal(ioopm_iterator_current(iterator), 20);
   assert_elem_int_equal(ioopm_iterator_remove(iterator), 20);
-  
+
   // Assert that the list was updated properly and that the current iterator element
   // is now the second element
   assert_elem_int_equal(ioopm_iterator_current(iterator), 200);
@@ -632,7 +632,7 @@ void test_iterator_insert_last() {
 
 void test_iterator_reset() {
   ioopm_list_t *list = ioopm_linked_list_create(eq_elem_int);
-  
+
   ioopm_linked_list_append(list, int_elem(100));
   ioopm_linked_list_append(list, int_elem(200));
   ioopm_linked_list_append(list, int_elem(300));
@@ -727,12 +727,12 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it removes links from the linked list", test_remove)) ||
     (NULL == CU_add_test(test_suite1, "it removes the first and last links from the linked list", test_remove_edges)) ||
     (NULL == CU_add_test(test_suite1, "it gives an error when removing invalid indices", test_remove_empty)) ||
-    (NULL == CU_add_test(test_suite1, "it clears an empty linked list", test_clear_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns true if all values matches the predicate", test_all)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty linked list", test_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty linked list", test_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all elements and updates the values", test_apply_all)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to an empty linked list", test_apply_all_empty)) ||
+    (NULL == CU_add_test(test_suite1, "it clears an empty linked list", test_clear_empty)) ||
     (NULL == CU_add_test(test_suite1, "it clears a non empty linked list", test_clear))
   ) {
     CU_cleanup_registry();
