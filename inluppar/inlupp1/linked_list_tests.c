@@ -705,6 +705,25 @@ void test_iterator_insert_last() {
   ioopm_linked_list_destroy(list);
 }
 
+void test_iterator_remove_all() {
+  ioopm_list_t *list = ioopm_linked_list_create(eq_elem_int);
+
+  ioopm_linked_list_append(list, int_elem(100));
+  ioopm_linked_list_append(list, int_elem(200));
+  ioopm_linked_list_append(list, int_elem(300));
+
+  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+
+  while (ioopm_iterator_has_next(iterator)) {
+    ioopm_iterator_remove(iterator);
+  }
+
+  CU_ASSERT_TRUE(ioopm_linked_list_is_empty(list));
+
+  ioopm_iterator_destroy(iterator);
+  ioopm_linked_list_destroy(list);
+}
+
 void test_iterator_reset() {
   ioopm_list_t *list = ioopm_linked_list_create(eq_elem_int);
 
@@ -786,7 +805,7 @@ int main() {
     (NULL == CU_add_test(test_suite2, "it gives an error when trying to get the current element of an empty linked list", test_iterator_current_invalid)) ||
     (NULL == CU_add_test(test_suite2, "it returns the value of the next element in the linked list", test_iterator_next)) ||
     (NULL == CU_add_test(test_suite2, "it gives an error when trying to get the next element when there are none", test_iterator_next_invalid)) ||
-    (NULL == CU_add_test(test_suite2, "it iterates through the entire list", test_iterator_loop_through)) ||
+    (NULL == CU_add_test(test_suite2, "it iterates through the entire linked list", test_iterator_loop_through)) ||
     (NULL == CU_add_test(test_suite2, "it gives an error when trying to remove an element from the empty linked list", test_iterator_remove_empty)) ||
     (NULL == CU_add_test(test_suite2, "it removes an element from the linked list and updates the iterator", test_iterator_remove)) ||
     (NULL == CU_add_test(test_suite2, "it removes the first element from the linked list", test_iterator_remove_first)) ||
@@ -795,6 +814,7 @@ int main() {
     (NULL == CU_add_test(test_suite2, "it inserts links into the linked list and updates the iterator", test_iterator_insert)) ||
     (NULL == CU_add_test(test_suite2, "it inserts links first into the linked list and updates the iterator", test_iterator_insert_first)) ||
     (NULL == CU_add_test(test_suite2, "it inserts links last into the linked list and updates the iterator", test_iterator_insert_last)) ||
+    (NULL == CU_add_test(test_suite2, "it iterates through the linked list and removes all links", test_iterator_remove_all)) ||
     (NULL == CU_add_test(test_suite2, "it resets the iterator to the start of the linked list", test_iterator_reset))
   ) {
     CU_cleanup_registry();

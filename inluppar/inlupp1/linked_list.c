@@ -202,7 +202,6 @@ bool ioopm_linked_list_is_empty(ioopm_list_t *list) {
 }
 
 void ioopm_linked_list_clear(ioopm_list_t *list) {
-  //Save the dummy node.
   link_t *first = list->first;
   link_t *link  = first->next;
   link_t *tmp;
@@ -223,22 +222,27 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t value) {
   link_t *first = list->first;
-  link_t *last = list->last;
-  link_t *current;
 
-  //Check first if the first or last value is what we search for.
-  //This makes for a better time-complexity in a best-case scenario.
-  if (list->eq_func(first->value, value) || list->eq_func(last->value, value)) {
-    return true;
-  }
+  // If the list is empty, we know for certain that the list does not
+  // contain the value
+  if (first->next != NULL) {
+    link_t *last = list->last;
+    link_t *current;
 
-  current = first->next;
-  while(current != NULL) {
-    if (list->eq_func(current->value, value)) {
+    //Check first if the first or last value is what we search for.
+    //This makes for a better time-complexity in a best-case scenario.
+    if (list->eq_func(first->value, value) || list->eq_func(last->value, value)) {
       return true;
     }
 
-    current = current->next;
+    current = first->next;
+    while(current != NULL) {
+      if (list->eq_func(current->value, value)) {
+        return true;
+      }
+
+      current = current->next;
+    }
   }
 
   return false;
