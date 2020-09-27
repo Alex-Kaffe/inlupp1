@@ -66,11 +66,6 @@ static bool is_valid_index(ioopm_list_t *list, size_t index) {
   return (index >= 0 && index < ioopm_linked_list_size(list));
 }
 
-/// @brief Checks if an iterator has a current value/the user has called ioopm_iterator_next
-static bool iterator_has_current(ioopm_list_iterator_t *iter) {
-  return iter->current != NULL;
-}
-
 /// @param index the index to get from list (must be a valid index [0..n-1])
 static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
@@ -301,8 +296,8 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
 
   //Set the current pointer to dummy at start.
   *result = (ioopm_list_iterator_t){
-    .current = list->first->next,
     .index = 0,
+    .current = list->first,
     .list = list,
   };
 
@@ -310,22 +305,25 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list) {
 }
 
 elem_t ioopm_iterator_next(ioopm_list_iterator_t *iter) {
-  //Iterator goes to the next link and increase the index by 1.
-  if (ioopm_iterator_has_next(iter)){
-    iter->index++;
-    iter->current = iter->current->next;
-
-    SUCCESS();
-    return iter->current->value;
+  if (!ioopm_iterator_has_next(iter)) {
+    FAILURE();
+    return ptr_elem(NULL);
   }
 
-  //Errno if there is no next link.
-  FAILURE();
-  return int_elem(0);
+  iter->current = iter->current->next;
+
+  // Do not increase the index if we are now
+  // positioned at the last element
+  if (iter->current->next != NULL) {
+    iter->index++;
+  }
+
+  SUCCESS();
+  return iter->current->value;
 }
 
 bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter){
-  return iter->current != NULL && iter->current->next != NULL;
+  return iter->current->next != NULL;
 }
 
 void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
@@ -333,57 +331,49 @@ void ioopm_iterator_destroy(ioopm_list_iterator_t *iter){
 }
 
 void ioopm_iterator_reset(ioopm_list_iterator_t *iter){
-  //Set index to 0 and reset the iterator on the first index.
+  iter->current = iter->list->first;
   iter->index = 0;
-  iter->current = iter->list->first->next;
 }
 
 void ioopm_iterator_insert(ioopm_list_iterator_t *iter, elem_t value) {
-  if (!iterator_has_current(iter)) {
-    // If the list is empty, prepend the link and set current to it.
-    ioopm_linked_list_prepend(iter->list, value);
-    iter->current = iter->list->first->next;
-  } else {
-    // Insert as usual.
-    ioopm_linked_list_insert(iter->list, iter->index, value);
-    iter->current = get_link_from_index(iter->list, iter->index);
+  ioopm_linked_list_insert(iter->list, iter->index, value);
+
+  if (!ioopm_iterator_has_next(iter)) {
+    // If we were previously positioned at the last element, we will no longer
+    // be positioned at the last element after linserting. This means that
+    // iter->current should point to the element previous to the newly inserted one.
+    // Therefore, we get the link using index-1 instead of just index.
+    iter->current = get_link_from_index(iter->list, iter->index - 1);
   }
 }
 
 elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter) {
-  //If the iterator is on an invalid index in a list, set errno to EINVAL.
-  if (!iterator_has_current(iter)) {
+  if (iter->list->size == 0) {
     FAILURE();
-    return int_elem(0);
+    return ptr_elem(NULL);
   }
 
   SUCCESS();
+
+  // Prevent segfault when positioned at the last element
+  if (ioopm_iterator_has_next(iter)) {
+    return iter->current->next->value;
+  }
+
   return iter->current->value;
 }
 
-elem_t ioopm_iterator_remove(ioopm_list_iterator_t *iter){
-  //Errno if removal on a link that doesn't exist.
-  if (!iterator_has_current(iter)){
-    FAILURE();
-    return int_elem(0);
-  }
+elem_t ioopm_iterator_remove(ioopm_list_iterator_t *iter) {
+  link_t *next = iter->current->next;
 
-  //Save the next link.
-  link_t *next_link = iter->current->next;
+  // Delete the element at the current index
   elem_t remove_value = ioopm_linked_list_remove(iter->list, iter->index);
 
-  // ioopm_linked_list_remove decreases the size by 1, meaning that we must compare
-  // the current iteration index with the current size, not size - 1
-  if (iter->index == iter->list->size) {
-    // If we are at the last index, removing the current element means that
-    // we must shift 1 step to the left
+  // Check if we were at the last element before removing
+  if (next == NULL) {
     iter->current = iter->list->last;
     iter->index--;
-  } else {
-    //After removal, the links to the right shifts one step to the left.
-    iter->current = next_link;
   }
 
-  SUCCESS();
   return remove_value;
 }
