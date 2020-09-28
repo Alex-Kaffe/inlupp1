@@ -161,6 +161,33 @@ void test_lookup() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_lookup_string_key() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, string_sum_hash);
+
+  elem_t key1 = ptr_elem("hello");
+  elem_t key2 = ptr_elem("goodbye");
+  
+  elem_t value1 = ptr_elem("world");
+  elem_t value2 = ptr_elem("cruel world");
+
+  assert_lookup(ht, key1, ptr_elem(NULL), true);
+  assert_lookup(ht, key2, ptr_elem(NULL), true);
+  
+  ioopm_hash_table_insert(ht, key1, value1);
+  ioopm_hash_table_insert(ht, key2, value2);
+  
+  //assert_lookup(ht, key1, value1, false);
+  //assert_lookup(ht, key2, value2, false);
+  
+  ioopm_hash_table_remove(ht, key1);
+  ioopm_hash_table_remove(ht, key2);
+  
+  assert_lookup(ht, key1, ptr_elem(NULL), true);
+  assert_lookup(ht, key2, ptr_elem(NULL), true);
+
+  ioopm_hash_table_destroy(ht);
+}
+
 void test_insert() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, NULL);
 
@@ -548,6 +575,18 @@ void test_hash_table_has_key() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_has_key_string() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, string_sum_hash);
+
+  elem_t key = ptr_elem("hello");
+
+  ioopm_hash_table_insert(ht, key, ptr_elem("world"));
+
+  CU_ASSERT_TRUE(ioopm_hash_table_has_key(ht, key));
+
+  ioopm_hash_table_destroy(ht);
+}
+
 void test_hash_table_has_key_invalid() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, NULL);
 
@@ -694,6 +733,7 @@ int main() {
   if (
     (NULL == CU_add_test(test_suite1, "it creates and returns a pointer to an allocated hash table", test_create_destroy)) ||
     (NULL == CU_add_test(test_suite1, "it returns NULL for keys that does not exist", test_lookup)) ||
+    (NULL == CU_add_test(test_suite1, "it returns the value for a non-integer key", test_lookup_string_key)) ||
     (NULL == CU_add_test(test_suite1, "it inserts a new entry", test_insert)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entries", test_insert_multiple)) ||
     (NULL == CU_add_test(test_suite1, "it inserts multiple entires into the same bucket", test_insert_same_bucket)) ||
@@ -718,6 +758,7 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns an array of all values when inserted into the same bucket", test_hash_table_values_same_bucket)) ||
     (NULL == CU_add_test(test_suite1, "it returns an updated array of values after removing", test_hash_table_values_modified)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with a valid key", test_hash_table_has_key)) ||
+    (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with a valid string-key", test_hash_table_has_key_string)) ||
     (NULL == CU_add_test(test_suite1, "it returns false when searching for an entry with an invalid key", test_hash_table_has_key_invalid)) ||
     (NULL == CU_add_test(test_suite1, "it returns false when searching for an entry with an invalid value", test_hash_table_has_value_invalid)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when searching for an entry with value being a copy", test_hash_table_has_value_equivalent)) ||

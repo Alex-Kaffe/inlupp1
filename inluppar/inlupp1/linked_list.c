@@ -6,6 +6,9 @@
 #include "linked_list.h"
 #include "common.h"
 
+// Errors when looking up a key will be saved into the global 'errno' variable
+extern int errno;
+
 typedef struct link link_t;
 
 struct link {
@@ -26,21 +29,21 @@ struct iter {
   ioopm_list_t *list;
 };
 
-static void link_destroy(link_t *link) {
-  free(link);
-}
-
 static link_t *link_create(elem_t value, link_t *next) {
   // Allocate memory for the new entry.
   link_t *result = calloc(1, sizeof(link_t));
 
   // The allocated memory is filled with the new entry.
-  *result  = (link_t){
+  *result = (link_t){
     .value = value,
-    .next  = next,
+    .next = next,
   };
 
   return result;
+}
+
+static void link_destroy(link_t *link) {
+  free(link);
 }
 
 /// @brief Removes a link from the linked list and deallocates the memory
@@ -86,9 +89,9 @@ ioopm_list_t *ioopm_linked_list_create(ioopm_eq_function eq_func) {
 
   // Create an empty hash table and assign to the allocated memory
   *result = (ioopm_list_t){
-    .first   = dummy,
-    .last    = dummy,
-    .size    = 0,
+    .size = 0,
+    .first = dummy,
+    .last = dummy,
     .eq_func = eq_func,
   };
 
@@ -96,17 +99,12 @@ ioopm_list_t *ioopm_linked_list_create(ioopm_eq_function eq_func) {
 }
 
 void ioopm_linked_list_destroy(ioopm_list_t *list) {
-  // The first link of the list is a dummy entry
-  link_t *link = list->first;
-  link_t *tmp;
+  // Deallocate all links
+  ioopm_linked_list_clear(list);
 
-  //iterate through the list, destroying each link.
-  while (link != NULL) {
-    tmp  = link->next;
-    link_destroy(link);
-    link = tmp;
-  }
-
+  // Deallocate dummy entry
+  free(list->first);
+  
   free(list);
 }
 
