@@ -11,9 +11,6 @@
 
 typedef struct entry entry_t;
 
-// Errors when looking up a key will be saved into the global 'errno' variable
-extern int errno;
-
 struct entry {
   elem_t key;       // holds the key
   elem_t value;   // holds the value
@@ -296,6 +293,7 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
   return false;
 }
 
+// TODO: Can these be rewritten?
 bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key){
   entry_t *entry;
   

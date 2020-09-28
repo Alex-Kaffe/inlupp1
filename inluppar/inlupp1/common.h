@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #define int_elem(x) (elem_t) { .i = (x) }
 #define ptr_elem(x) (elem_t) { .p = (x) }
@@ -10,7 +11,8 @@
 #define SUCCESS(v)  (errno = 0)
 #define FAILURE(v)  (errno = EINVAL)
 
-//TODO: Ingen läkning gjordes.
+//TODO: Ingen läkning gjordes
+extern int errno;
 
 typedef struct hash_table ioopm_hash_table_t;
 

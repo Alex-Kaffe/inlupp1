@@ -6,9 +6,6 @@
 #include "linked_list.h"
 #include "common.h"
 
-// Errors when looking up a key will be saved into the global 'errno' variable
-extern int errno;
-
 typedef struct link link_t;
 
 struct link {
