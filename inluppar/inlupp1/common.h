@@ -18,9 +18,9 @@ typedef struct iter ioopm_list_iterator_t;
 
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
-typedef struct elem elem_t;
+typedef union elem elem_t;
 
-struct elem {
+union elem {
   int i;
   unsigned int unsigned_int;
   bool b;
