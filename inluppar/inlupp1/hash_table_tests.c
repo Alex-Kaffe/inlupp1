@@ -175,8 +175,8 @@ void test_lookup_string_key() {
   ioopm_hash_table_insert(ht, key1, value1);
   ioopm_hash_table_insert(ht, key2, value2);
 
-  //assert_lookup(ht, key1, value1, false);
-  //assert_lookup(ht, key2, value2, false);
+  assert_lookup(ht, key1, value1, false);
+  assert_lookup(ht, key2, value2, false);
 
   ioopm_hash_table_remove(ht, key1);
   ioopm_hash_table_remove(ht, key2);
