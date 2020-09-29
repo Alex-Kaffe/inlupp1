@@ -20,7 +20,7 @@ int clean_suite(void) {
 }
 
 // Hash function for strings
-unsigned int string_sum_hash(elem_t key) {
+unsigned long string_sum_hash(elem_t key) {
   unsigned int result = 0;
   char *str = (char*)key.extra;
 

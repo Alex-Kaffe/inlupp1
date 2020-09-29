@@ -14,7 +14,6 @@
 #define SUCCESS(v)  (errno = 0)
 #define FAILURE(v)  (errno = EINVAL)
 
-//TODO: Ingen läkning gjordes
 extern int errno;
 
 typedef struct hash_table ioopm_hash_table_t;
@@ -28,6 +27,7 @@ typedef union elem elem_t;
 union elem {
   int integer;
   unsigned int unsigned_int;
+  unsigned long unsigned_long;
   bool boolean;
   float floating;
   void *extra;
@@ -36,4 +36,4 @@ union elem {
 typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 
 // TODO: Should the hash function return an unsigned int?
-typedef unsigned int(*ioopm_hash_function)(elem_t key);
+typedef unsigned long(*ioopm_hash_function)(elem_t key);

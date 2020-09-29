@@ -9,14 +9,14 @@
 
 #define Delimiters "+-#@()[]{}.,:;!? \t\n\r"
 
-unsigned int string_hash(elem_t key) {
-  unsigned int result = 0;
+unsigned long string_hash(elem_t key) {
+  unsigned long result = 0;
   char *str = (char*)key.extra;
 
   do {
-    result = result + *str;
+    result = result * 31 + *str;
   } while (*++str != '\0');
-
+  
   return result;
 }
 
@@ -52,6 +52,10 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
       free(buf);
       break;
     }
+
+  //Allokeras i process_file kallelsen i strdup
+  //Frigörs i main senare efter att det blivit uppropat från array
+  // Invalid read av storleken som kommit från find_prev_entry
 
     for (char *word = strtok(buf, Delimiters);
        word && *word;
@@ -115,13 +119,14 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < size; i++) {
     current_word = arr[i];
     printf("%s: %d\n", current_word, ioopm_hash_table_lookup(ht, ptr_elem(current_word)).integer);
+  }
 
+  for (i = 0 ; i < size ; i++){
     // Deallocate each duplicated word string.
     // This is not handled by the hash table, since the value is not stored in the hash table
     // directly, but rather as a pointer.
-    free(current_word);
+    free(arr[i]);
   }
-
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(keys);
   ioopm_hash_table_destroy(ht);
