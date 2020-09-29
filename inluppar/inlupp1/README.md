@@ -1,32 +1,32 @@
 # Initial Profiling Results
 ## small.txt
 Top 3 functions: 
-1. _dl_start (ld-2.32.so)
-2. _dl_sysdep_start (ld-2.32.so)
-2. dl_main (ld-2.32.so)
+1. `_dl_start (ld-2.32.so)`
+2. `_dl_sysdep_start (ld-2.32.so)`
+2. `dl_main (ld-2.32.so)`
 
 Top 3 functions from our code:
-1. ioopm_hash_table_create (hash_table.c)
-2. process_file (freq_count.c)
-2. ioopm_hash_table_lookup (hash_table.c)
+1. `ioopm_hash_table_create (hash_table.c)`
+2. `process_file (freq_count.c)`
+2. `ioopm_hash_table_lookup (hash_table.c)`
 
 ## 1k-long-word.txt
 Top 3 functions: 
-1. process_file (freq_count.c)
-2. string_hash (freq_count.c)
-3. find_previous_entry_for_key (hash_table.c)
+1. `process_file (freq_count.c)`
+2. `string_hash (freq_count.c)`
+3. `find_previous_entry_for_key (hash_table.c)`
 
 ## 10k-long-word.txt
 Top 3 functions:
-1. find_previous_entry_for_key (hash_table.c)
-2. string_hash (freq_count.c)
-3. process_file (freq_count.c))
+1. `find_previous_entry_for_key (hash_table.c)`
+2. `string_hash (freq_count.c)`
+3. `process_file (freq_count.c)`
 
 ## 16k-long-word.txt
 Top 3 functions:
-1. find_previous_entry_for_key (hash_table.c)
-2. string_hash (freq_count.c))
-3. process_file (freq_count.c)))
+1. `find_previous_entry_for_key (hash_table.c)`
+2. `string_hash (freq_count.c)`
+3. `process_file (freq_count.c)`
 
 
 As you can see, the top 3 functions are consistent across different inputs (except `small.txt` because of its extremely small size and fast execution time).
