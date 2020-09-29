@@ -4,8 +4,11 @@
 #include <stdbool.h>
 #include <errno.h>
 
-#define int_elem(x) (elem_t) { .i = (x) }
-#define ptr_elem(x) (elem_t) { .p = (x) }
+#define int_elem(x)   (elem_t) { .integer = (x) }
+#define uint_elem(x)  (elem_t) { .unsigned_int = (x) }
+#define bool_elem(x)  (elem_t) { .bool = (x) }
+#define float_elem(x) (elem_t) { .floating = (x) }
+#define ptr_elem(x)   (elem_t) { .extra = (x) }
 
 #define HAS_ERROR() (errno == EINVAL)
 #define SUCCESS(v)  (errno = 0)
@@ -23,14 +26,14 @@ typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 typedef union elem elem_t;
 
 union elem {
-  int i;
+  int integer;
   unsigned int unsigned_int;
-  bool b;
-  float f;
-  void *p;
+  bool boolean;
+  float floating;
+  void *extra;
 };
 
 typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 
 // TODO: Should the hash function return an unsigned int?
-typedef int(*ioopm_hash_function)(elem_t key);
+typedef unsigned int(*ioopm_hash_function)(elem_t key);

@@ -15,7 +15,7 @@ int clean_suite(void) {
 }
 
 bool eq_elem_int(elem_t a, elem_t b) {
-  return a.i == b.i;
+  return a.integer == b.integer;
 }
 
 void assert_elem_int_equal(elem_t a, int b) {
