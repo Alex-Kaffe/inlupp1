@@ -70,8 +70,6 @@ static bool is_valid_index(ioopm_list_t *list, size_t index) {
 static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
 
-  // We want to go through the linked list index - 1 times
-  // to get the previous link
   while (index != 0) {
     previous = previous->next;
     index--;

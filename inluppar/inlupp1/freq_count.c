@@ -85,44 +85,41 @@ int main(int argc, char *argv[]) {
     puts("Usage: freq-count file1 ... filen");
     return 1;
   }
-
+  
   for (int i = 1; i < argc; ++i) {
     process_file(argv[i], ht);
   }
+
 
   size_t size = ioopm_hash_table_size(ht);
   ioopm_list_t *keys = ioopm_hash_table_keys(ht);
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(keys);
 
-  printf("Total words: %zu\n", size);
-
-  //sort_keys(keys, size);
-
-  /*while (ioopm_iterator_has_next(iterator)) {
-    current = ioopm_iterator_next(iterator);
-    next = ioopm_iterator_current(iterator);
-
-    if (strcmp((char*)current.p, (char*)next.p) > 0) {
-      current = ioopm_iterator_remove(iterator);
-      ioopm_iterator_reset(iterator);
-      ioopm_iterator_insert(iterator, current);
-    }
-    //elem_t word = ioopm_iterator_next(iterator);
-    //puts((char*)current.p);
-  }*/
-
-  //ioopm_iterator_reset(iterator);
-
+  printf("Total unique words: %zu\n", size);
+  
+  char *arr[size];
+  size_t i = 0;
   elem_t current;
-
+  
+  // Create array with words
   while (ioopm_iterator_has_next(iterator)) {
     current = ioopm_iterator_next(iterator);
-    printf("%s: %d\n", (char*)current.extra, ioopm_hash_table_lookup(ht, current).integer);
+    arr[i] = current.extra; 
+    i++;
+  }
+  
+  sort_keys(arr, size);
+  
+  // Print all words
+  char *current_word;
+  for (i = 0; i < size; i++) {
+    current_word = arr[i];
+    printf("%s: %d\n", current_word, ioopm_hash_table_lookup(ht, ptr_elem(current_word)).integer);
 
     // Deallocate each duplicated word string.
     // This is not handled by the hash table, since the value is not stored in the hash table
     // directly, but rather as a pointer.
-    free(current.extra);
+    free(current_word);
   }
 
   ioopm_iterator_destroy(iterator);

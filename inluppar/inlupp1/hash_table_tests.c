@@ -8,7 +8,7 @@
 #include "common.h"
 #include "hash_table.h"
 
-// This is the current fixed bucket size
+// TODO: Remove this
 #define NO_BUCKETS 17
 
 int init_suite(void) {
@@ -191,6 +191,8 @@ void test_insert() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, NULL);
 
   assert_insert(ht, int_elem(1), ptr_elem("test"));
+  assert_insert(ht, int_elem(2), ptr_elem("test"));
+  assert_insert(ht, int_elem(3), ptr_elem("test"));
 
   ioopm_hash_table_destroy(ht);
 }

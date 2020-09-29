@@ -10,11 +10,21 @@
 #define NO_BUCKETS 17
 
 typedef struct entry entry_t;
+typedef struct compare_data compare_data_t;
+
+/// @brief Used as the extra argument in predicates when comparing values or keys in the hash table
+/// This is needed since the value and key are generic types and they are compared using either
+/// the hash_func or eq_func. The predicate and apply functions only accept one extra argument
+/// of an arbitrary type, meaning that we need a struct to pass in more than one value.
+struct compare_data {
+  void *func;     // The function used in the comparison
+  elem_t element; // The element to compare to
+};
 
 struct entry {
-  elem_t key;    // holds the key
-  elem_t value;  // holds the value
-  entry_t *next; // points to the next entry (possibly NULL)
+  elem_t key;     // holds the key
+  elem_t value;   // holds the value
+  entry_t *next;  // points to the next entry (possibly NULL)
 };
 
 struct hash_table {
@@ -59,13 +69,27 @@ static entry_t *find_previous_entry_for_key(ioopm_hash_function hash_func, entry
   }
 
   if (current->next == NULL) {
-    // If no previous entry was found, return the dummy
+    // If no previous entry was found, set errno
     FAILURE();
     return entry;
   }
 
   SUCCESS();
   return current;
+}
+
+static bool value_compare_pred(elem_t key, elem_t value, void *x) {
+  compare_data_t *data = (compare_data_t*)x;
+  ioopm_eq_function eq_func = (ioopm_eq_function)data->func;
+  
+  return eq_func(value, data->element);
+}
+
+static bool key_compare_pred(elem_t key, elem_t value, void *x) {
+  compare_data_t *data = (compare_data_t*)x;
+  ioopm_hash_function hash_func = (ioopm_hash_function)data->func;
+  
+  return hash_func(key) == hash_func(data->element);
 }
 
 ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_func, ioopm_hash_function hash_func) {
@@ -237,19 +261,18 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
 }
 
 bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg){
-  bool result = true;
   entry_t *entry;
 
   for(unsigned int i = 0; i < NO_BUCKETS ; i++){
     entry = ht->buckets[i]->next;
 
     while(entry != NULL) {
-      result = result && pred(entry->key, entry->value, arg);
+      if (!pred(entry->key, entry->value, arg)) return false;
       entry = entry->next;
     }
   }
 
-  return result;
+  return true;
 }
 
 void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function apply_fun, void *arg){
@@ -280,33 +303,12 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
   return false;
 }
 
-// TODO: Can these be rewritten?
 bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key){
-  entry_t *entry;
-
-  for (unsigned int i = 0; i < NO_BUCKETS; i++) {
-    entry = ht->buckets[i]->next;
-
-    while(entry != NULL) {
-      if (ht->hash_func(entry->key) == ht->hash_func(key)) return true;
-      entry = entry->next;
-    }
-  }
-
-  return false;
+  compare_data_t data = { .func = ht->hash_func, .element = key };
+  return ioopm_hash_table_any(ht, key_compare_pred, &data);
 }
 
 bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, elem_t value) {
-  entry_t *entry;
-
-  for (unsigned int i = 0; i < NO_BUCKETS; i++) {
-    entry = ht->buckets[i]->next;
-
-    while(entry != NULL) {
-      if (ht->eq_func(entry->value, value)) return true;
-      entry = entry->next;
-    }
-  }
-
-  return false;
+  compare_data_t data = { .func = ht->eq_func, .element = value };
+  return ioopm_hash_table_any(ht, value_compare_pred, &data);
 }
