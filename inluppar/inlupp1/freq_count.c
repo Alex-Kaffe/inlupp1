@@ -9,9 +9,9 @@
 
 #define Delimiters "+-#@()[]{}.,:;!? \t\n\r"
 
-int string_hash(elem_t key) {
+unsigned int string_hash(elem_t key) {
   unsigned int result = 0;
-  char *str = (char*)key.p;
+  char *str = (char*)key.extra;
 
   do {
     result = result + *str;
@@ -21,14 +21,13 @@ int string_hash(elem_t key) {
 }
 
 bool eq_elem_int(elem_t a, elem_t b) {
-  return a.i == b.i;
+  return a.integer == b.integer;
 }
 
 //Compares two strings.
 static int cmpstringp(const void *p1, const void *p2) {
   return strcmp(* (char * const *) p1, * (char * const *) p2);
 }
-
 
 //Sort keys in an array.
 void sort_keys(char *keys[], size_t no_keys) {
@@ -68,7 +67,7 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
         word_dup = strdup(word);
         process_word(ht, word_dup, 1);
       } else {
-        process_word(ht, word, count.i + 1);
+        process_word(ht, word, count.integer + 1);
       }
     }
 
@@ -82,6 +81,7 @@ int main(int argc, char *argv[]) {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, string_hash);
 
   if (argc <= 1) {
+    ioopm_hash_table_destroy(ht);
     puts("Usage: freq-count file1 ... filen");
     return 1;
   }
@@ -117,12 +117,12 @@ int main(int argc, char *argv[]) {
 
   while (ioopm_iterator_has_next(iterator)) {
     current = ioopm_iterator_next(iterator);
-    printf("%s: %d\n", (char*)current.p, ioopm_hash_table_lookup(ht, current).i);
+    printf("%s: %d\n", (char*)current.extra, ioopm_hash_table_lookup(ht, current).integer);
 
     // Deallocate each duplicated word string.
     // This is not handled by the hash table, since the value is not stored in the hash table
     // directly, but rather as a pointer.
-    free(current.p);
+    free(current.extra);
   }
 
   ioopm_iterator_destroy(iterator);
