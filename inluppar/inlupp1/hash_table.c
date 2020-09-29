@@ -81,14 +81,14 @@ static entry_t *find_previous_entry_for_key(ioopm_hash_function hash_func, entry
 static bool value_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
   ioopm_eq_function eq_func = (ioopm_eq_function)data->func;
-  
+
   return eq_func(value, data->element);
 }
 
 static bool key_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
   ioopm_hash_function hash_func = (ioopm_hash_function)data->func;
-  
+
   return hash_func(key) == hash_func(data->element);
 }
 

@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "hash_table.h"
+#include "linked_list.h"
 
 // TODO: Remove this
 #define NO_BUCKETS 17
@@ -92,10 +93,6 @@ void assert_remove(ioopm_hash_table_t *ht, elem_t key) {
 void assert_insert_and_remove(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
   assert_insert(ht, key, value);
   assert_remove(ht, key);
-}
-
-void assert_values_array_terminates(char **values, int values_size) {
-  CU_ASSERT_PTR_NULL(values[values_size]);
 }
 
 void assert_keys_array(ioopm_hash_table_t *ht, elem_t expected_keys[], size_t expected_size) {
@@ -368,6 +365,41 @@ void test_hash_table_keys() {
   }
 
   assert_keys_array(ht, expected_keys, expected_size);
+
+  CU_ASSERT_EQUAL(ioopm_hash_table_size(ht), expected_size);
+
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_keys_strings() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, NULL);
+
+  size_t expected_size = 3;
+  elem_t expected_keys[] = {
+    ptr_elem("hello"),
+    ptr_elem("world"),
+    ptr_elem("dude"),
+  };
+
+  for (int i = 0; i < expected_size; i++) {
+    ioopm_hash_table_insert(ht, expected_keys[i], int_elem(0));
+  }
+
+  ioopm_list_t *keys = ioopm_hash_table_keys(ht);
+
+  CU_ASSERT_EQUAL(ioopm_linked_list_size(keys), expected_size);
+
+  for (int i = 0; i < expected_size; i++) {
+    // Make sure that all keys are present in the keys array
+    // and that they are in the expected order.
+    CU_ASSERT_TRUE(ioopm_linked_list_contains(keys, expected_keys[i]));
+  }
+
+  CU_ASSERT_FALSE(ioopm_linked_list_contains(keys, ptr_elem("goodbye")));
+  CU_ASSERT_FALSE(ioopm_linked_list_contains(keys, ptr_elem("hellos")));
+
+  // Make sure to clean up the allocated keys array
+  ioopm_linked_list_destroy(keys);
 
   CU_ASSERT_EQUAL(ioopm_hash_table_size(ht), expected_size);
 
@@ -710,6 +742,7 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it clears all entries in a non-empty hash table", test_hash_table_clear)) ||
     (NULL == CU_add_test(test_suite1, "it does not fail when trying to clear an empty hash table", test_hash_table_clear_on_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns an array of all keys", test_hash_table_keys)) ||
+    (NULL == CU_add_test(test_suite1, "it returns an array of all string-keys", test_hash_table_keys_strings)) ||
     (NULL == CU_add_test(test_suite1, "it returns an empty array of keys when the hash table is empty", test_hash_table_keys_empty)) ||
     (NULL == CU_add_test(test_suite1, "it returns an updated array of keys after removing", test_hash_table_keys_modified)) ||
     (NULL == CU_add_test(test_suite1, "it returns an array of all values", test_hash_table_values)) ||
