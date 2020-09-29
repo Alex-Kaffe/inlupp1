@@ -31,17 +31,20 @@ linked_list_mem: linked_list_tests.out
 	valgrind --leak-check=full ./linked_list_tests.out
 	
 freq_count: freq_count.out
-	./freq_count.out $(FREQ_COUNT_ARGS)
+	./freq_count.out $(ARGS)
 	
 freq_count_mem: freq_count.out
-	valgrind --leak-check=full ./freq_count.out $(FREQ_COUNT_ARGS)
+	valgrind --leak-check=full ./freq_count.out $(ARGS)
 
 freq_count_time: freq_count.out
-	/usr/bin/time --verbose ./freq_count.out freq_data/10k-words.txt
+	/usr/bin/time --verbose ./freq_count.out $(ARGS)
+	
+freq_count_profile: freq_count.out
+	valgrind --tool=callgrind ./freq_count.out $(ARGS)
 
 tests: hash_table_tests linked_list_tests
 
 memtest: hash_table_mem linked_list_mem
 
 clean:
-	rm -f *.out *.o *.gch
+	rm -f *.out *.o *.gch callgrind.out.*
