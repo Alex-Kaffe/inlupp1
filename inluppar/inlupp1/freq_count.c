@@ -19,21 +19,6 @@ unsigned long string_hash(elem_t key) {
   
   return result;
 }
-/*
-bool eq_elem_string(elem_t a, elem_t b){
-  char *p1 = a.extra;
-  char *p2 = b.extra;
-
-  if (p1 == NULL && p1 == p2) {
-    return true;
-  }
-
-  return strcmp((char*)p1, (char*)p2) == 0;
-}
-
-bool eq_elem_int(elem_t a, elem_t b) {
-  return a.integer == b.integer;
-}*/
 
 //Compares two strings.
 static int cmpstringp(const void *p1, const void *p2) {
@@ -64,8 +49,8 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
       break;
     }
 
-  //Allokeras i process_file kallelsen i strdup
-  //Frigörs i main senare efter att det blivit uppropat från array
+  // Allokeras i process_file kallelsen i strdup
+  // Frigörs i main senare efter att det blivit uppropat från array
   // Invalid read av storleken som kommit från find_prev_entry
 
     for (char *word = strtok(buf, Delimiters);
@@ -104,7 +89,6 @@ int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; ++i) {
     process_file(argv[i], ht);
   }
-
 
   size_t size = ioopm_hash_table_size(ht);
   ioopm_list_t *keys = ioopm_hash_table_keys(ht);
