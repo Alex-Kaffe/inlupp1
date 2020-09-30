@@ -202,23 +202,35 @@ void test_insert_multiple() {
 
 void test_remove_invalid_key() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, eq_elem_string, NULL);
-
+  
   char *test_value = "test";
 
-  for (int i = 0; i < NO_BUCKETS; i++) {
-    // Populate the hash table with 17 different entries, one for each bucket
-    ioopm_hash_table_insert(ht, int_elem(i), ptr_elem(test_value));
-  }
+  ioopm_hash_table_insert(ht, int_elem(1), ptr_elem(test_value));
 
   // Try to remove an invalid key
   ioopm_hash_table_remove(ht, int_elem(-1));
 
-  // Make sure that all the dummy entries are still present in the hash table
-  // and that the value is the same as before
-  for (int i = 0; i < NO_BUCKETS; i++) {
-    assert_lookup(ht, int_elem(i), ptr_elem(test_value), false);
-  }
+  assert_lookup(ht, int_elem(1), ptr_elem(test_value), false);
 
+  ioopm_hash_table_destroy(ht);
+}
+
+void test_hash_table_resize() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create_load_factor(eq_elem_int, eq_elem_string, NULL, 0.5);
+  
+  char *test_value = "test";
+  
+  // Insert 10 elements to cause a resize (since 0.5*17 == 8.5, where 17 is the initial bucket amount)
+  for (int i = 0; i < 10; i++) {
+    // Populate the hash table with 17 different entries, one for each bucket
+    ioopm_hash_table_insert(ht, int_elem(i), ptr_elem(test_value));
+  }
+  
+  for (int i = 0; i < 10; i++) {
+    // Populate the hash table with 17 different entries, one for each bucket
+    ioopm_hash_table_remove(ht, int_elem(i));
+  }
+  
   ioopm_hash_table_destroy(ht);
 }
 
@@ -744,7 +756,8 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true if all entries matches the predicate", test_hash_table_all)) ||
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty hash table", test_hash_table_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all)) ||
-    (NULL == CU_add_test(test_suite1, "it can take in the hash function as an argument", test_hash_table_hash_function))
+    (NULL == CU_add_test(test_suite1, "it can take in the hash function as an argument", test_hash_table_hash_function)) ||
+    (NULL == CU_add_test(test_suite1, "it resizes when inserting 10 elements with a load factor of 0.5", test_hash_table_resize))
    ) {
     CU_cleanup_registry();
     return CU_get_error();

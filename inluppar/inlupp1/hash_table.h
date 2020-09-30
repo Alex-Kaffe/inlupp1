@@ -23,7 +23,8 @@ typedef bool(*ioopm_predicate)(elem_t key, elem_t value, void *extra);
 typedef void(*ioopm_apply_function)(elem_t key, elem_t *value, void *extra);
 
 /// @brief Create a new hash table
-/// @param eq_func the function used to compare two values in the hash table
+/// @param eq_key the function used to compare two keys in the hash table
+/// @param eq_values the function used to compare two values in the hash table
 /// @param hash_func the function used to create a hash code from the key
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create( 
@@ -31,6 +32,24 @@ ioopm_hash_table_t *ioopm_hash_table_create(
     ioopm_eq_function eq_value, 
     ioopm_hash_function hash_func
     );
+    
+/// @brief Create a new hash table with a custom load factor
+/// @param eq_key the function used to compare two keys in the hash table
+/// @param eq_values the function used to compare two values in the hash table
+/// @param hash_func the function used to create a hash code from the key
+/// @param load_factor the load factor used to increase the amount of buckets when the size increases
+/// @return A new empty hash table
+ioopm_hash_table_t *ioopm_hash_table_create_load_factor( 
+    ioopm_eq_function eq_key, 
+    ioopm_eq_function eq_value, 
+    ioopm_hash_function hash_func,
+    float load_factor
+    );
+
+/// @brief Delete a hash table and free its memory
+/// If you store pointer elements in the hash table, e.g. char*, the hash table
+/// will not be able to deallocate them, since it does not know the type of the data.
+/// This means that you are responsible for deallocating any memory that is not stored
 
 /// @brief Delete a hash table and free its memory
 /// If you store pointer elements in the hash table, e.g. char*, the hash table
