@@ -41,7 +41,11 @@
 *.su
 *.idb
 *.pdb
+*.gcno
+*.gcda
+*.gcov
 callgrind.out.*
+coverage/
 
 # Kernel Module Compile Results
 *.mod*
