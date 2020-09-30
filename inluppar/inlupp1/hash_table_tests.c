@@ -36,21 +36,6 @@ bool value_equiv(elem_t key, elem_t value, void *x) {
   return strcmp(value.extra, ((elem_t*)x)->extra) == 0;
 }
 
-bool eq_elem_string(elem_t a, elem_t b){
-  char *p1 = a.extra;
-  char *p2 = b.extra;
-
-  if (p1 == NULL && p1 == p2) {
-    return true;
-  }
-
-  return strcmp((char*)p1, (char*)p2) == 0;
-}
-
-bool eq_elem_int(elem_t a, elem_t b) {
-  return a.integer == b.integer;
-}
-
 void change_all_values(elem_t key, elem_t *value, void *x) {
   *value = *(elem_t*)x;
 }

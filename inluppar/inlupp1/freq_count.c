@@ -19,10 +19,21 @@ unsigned long string_hash(elem_t key) {
   
   return result;
 }
+/*
+bool eq_elem_string(elem_t a, elem_t b){
+  char *p1 = a.extra;
+  char *p2 = b.extra;
+
+  if (p1 == NULL && p1 == p2) {
+    return true;
+  }
+
+  return strcmp((char*)p1, (char*)p2) == 0;
+}
 
 bool eq_elem_int(elem_t a, elem_t b) {
   return a.integer == b.integer;
-}
+}*/
 
 //Compares two strings.
 static int cmpstringp(const void *p1, const void *p2) {
@@ -82,7 +93,7 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
 }
 
 int main(int argc, char *argv[]) {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, string_hash);
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, eq_elem_int, string_hash);
 
   if (argc <= 1) {
     ioopm_hash_table_destroy(ht);
@@ -127,6 +138,7 @@ int main(int argc, char *argv[]) {
     // directly, but rather as a pointer.
     free(arr[i]);
   }
+  
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(keys);
   ioopm_hash_table_destroy(ht);

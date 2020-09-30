@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <string.h>
 
 #define int_elem(x)   (elem_t) { .integer = (x) }
 #define uint_elem(x)  (elem_t) { .unsigned_int = (x) }
@@ -38,7 +39,6 @@ union elem {
 
 typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 
-
 /// @brief Used as the extra argument in predicates when comparing values or keys in the hash table
 /// This is needed since the value and key are generic types and they are compared using either
 /// the hash_func or eq_func. The predicate and apply functions only accept one extra argument
@@ -48,5 +48,10 @@ struct compare_data {
   elem_t element;            // The element to compare to
 };
 
-// TODO: Should the hash function return an unsigned int?
 typedef unsigned long(*ioopm_hash_function)(elem_t key);
+
+/// @brief Compares the char* pointers of two elem_t
+bool eq_elem_string(elem_t a, elem_t b);
+
+/// @brief Compares the integer value of two elem_t
+bool eq_elem_int(elem_t a, elem_t b);

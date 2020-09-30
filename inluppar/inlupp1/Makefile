@@ -3,26 +3,23 @@ CFLAGS=-ggdb -Wall -fprofile-arcs -ftest-coverage
 CFLAGS_LIB=-c
 COVERAGE_DIR=coverage
 
-linked_list.o: linked_list.c common.h
-	gcc $(CFLAGS) $(CFLAGS_LIB) linked_list.c
+%.o: %.c
+	gcc $(CFLAGS) $(CFLAGS_LIB) $^
 
-hash_table.o: linked_list.c hash_table.c common.h
-	gcc $(CFLAGS) $(CFLAGS_LIB) linked_list.c hash_table.c
+hash_table.o: linked_list.c hash_table.c common.o
+	gcc $(CFLAGS) $(CFLAGS_LIB) $^
 
-freq_count.out: linked_list.o hash_table.o freq_count.c common.h
-	gcc $(CFLAGS) linked_list.o hash_table.o freq_count.c -o $@
+freq_count.out: linked_list.o hash_table.o freq_count.c common.o
+	gcc $(CFLAGS) $^ -o $@
 
-hash_table_tests.out: linked_list.o hash_table.o hash_table_tests.c common.h
-	gcc $(CFLAGS) linked_list.o hash_table.o hash_table_tests.c -o hash_table_tests.out -lcunit
+hash_table_tests.out: linked_list.o hash_table.o hash_table_tests.c common.o
+	gcc $(CFLAGS) $^ -o $@ -lcunit
 
-linked_list_tests.out: linked_list.o linked_list_tests.c common.h
-	gcc $(CFLAGS) linked_list.o linked_list_tests.c -o linked_list_tests.out -lcunit
+linked_list_tests.out: linked_list.o linked_list_tests.c common.o
+	gcc $(CFLAGS) $^ -o $@ -lcunit
 
-hash_table_tests: hash_table_tests.out
-	./hash_table_tests.out
-
-linked_list_tests: linked_list_tests.out
-	./linked_list_tests.out
+%_tests: %_tests.out
+	./$@.out
 
 hash_table_mem: hash_table_tests.out
 	valgrind --leak-check=full ./hash_table_tests.out

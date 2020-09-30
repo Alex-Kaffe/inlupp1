@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include <CUnit/Basic.h>
 
+#include "common.h"
 #include "linked_list.h"
 
 int init_suite(void) {
@@ -12,10 +12,6 @@ int init_suite(void) {
 
 int clean_suite(void) {
   return 0;
-}
-
-bool eq_elem_int(elem_t a, elem_t b) {
-  return a.integer == b.integer;
 }
 
 void assert_elem_int_equal(elem_t a, int b) {
