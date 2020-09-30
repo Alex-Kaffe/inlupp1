@@ -7,6 +7,14 @@
 #include "common.h"
 
 typedef struct link link_t;
+typedef struct compare_data compare_data_t;
+
+// TODO: Move to common.h?
+/// @brief Used as the extra argument in predicates to allow the use of eq_func
+struct compare_data {
+  ioopm_eq_function eq_func;  // The function used in the comparison
+  elem_t element;             // The element to compare to
+};
 
 struct link {
   elem_t value;
@@ -66,6 +74,7 @@ static bool is_valid_index(ioopm_list_t *list, size_t index) {
   return (index >= 0 && index < ioopm_linked_list_size(list));
 }
 
+// TODO: Add index check in this function
 /// @param index the index to get from list (must be a valid index [0..n-1])
 static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
@@ -76,6 +85,11 @@ static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   }
 
   return previous;
+}
+
+static bool value_equiv(elem_t value, void *x) {
+  compare_data_t *data = x;
+  return data->eq_func(value, data->element);
 }
 
 ioopm_list_t *ioopm_linked_list_create(ioopm_eq_function eq_func) {
@@ -99,7 +113,7 @@ void ioopm_linked_list_destroy(ioopm_list_t *list) {
 
   // Deallocate dummy entry
   free(list->first);
-  
+
   free(list);
 }
 
@@ -214,31 +228,8 @@ void ioopm_linked_list_clear(ioopm_list_t *list) {
 }
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t value) {
-  link_t *first = list->first;
-
-  // If the list is empty, we know for certain that the list does not
-  // contain the value
-  if (first->next != NULL) {
-    link_t *last = list->last;
-    link_t *current;
-
-    //Check first if the first or last value is what we search for.
-    //This makes for a better time-complexity in a best-case scenario.
-    if (list->eq_func(first->value, value) || list->eq_func(last->value, value)) {
-      return true;
-    }
-
-    current = first->next;
-    while(current != NULL) {
-      if (list->eq_func(current->value, value)) {
-        return true;
-      }
-
-      current = current->next;
-    }
-  }
-
-  return false;
+  compare_data_t data = { .eq_func = list->eq_func, .element = value };
+  return ioopm_linked_list_any(list, value_equiv, &data);
 }
 
 elem_t ioopm_linked_list_get(ioopm_list_t *list, size_t index) {

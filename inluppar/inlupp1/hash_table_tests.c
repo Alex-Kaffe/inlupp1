@@ -454,7 +454,7 @@ void test_hash_table_values() {
   size_t expected_size = 3;
   elem_t expected_values[] = {
     ptr_elem("test"),
-    ptr_elem("hello"),
+    ptr_elem(NULL),
     ptr_elem("world"),
   };
 
