@@ -78,6 +78,26 @@ static entry_t *find_previous_entry_for_key(ioopm_hash_function hash_func, entry
   return current;
 }
 
+/// @brief Increases the value of a pointer by one each call
+/// @param x a pointer to a size_t variable
+static void count_elements(elem_t key, elem_t *value, void *x) {
+  *(size_t*)x += 1;
+}
+
+/// @brief Used in conjuction with apply_to_all to insert keys into a linked list
+/// @param x a pointer to a linked list
+static void append_key_to_list(elem_t key, elem_t *value, void *x) {
+  ioopm_list_t *list = x;
+  ioopm_linked_list_append(list, key);
+}
+
+/// @brief Used in conjuction with apply_to_all to insert values into a linked list
+/// @param x a pointer to a linked list
+static void append_value_to_list(elem_t key, elem_t *value, void *x) {
+  ioopm_list_t *list = x;
+  ioopm_linked_list_append(list, *value);
+}
+
 static bool value_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
   ioopm_eq_function eq_func = (ioopm_eq_function)data->func;
@@ -191,17 +211,7 @@ elem_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key) {
 
 size_t ioopm_hash_table_size(ioopm_hash_table_t *ht) {
   size_t counter = 0;
-  entry_t *current_entry;
-
-  for (unsigned long i = 0; i < NO_BUCKETS; i++) {
-    current_entry = ht->buckets[i];
-    while (current_entry->next != NULL){
-      //If bucket_size > 1, It counts the dummy entry, whilst skipping the last entry.
-      current_entry = current_entry->next;
-      counter++;
-    }
-  }
-
+  ioopm_hash_table_apply_to_all(ht, count_elements, &counter);
   return counter;
 }
 
@@ -230,33 +240,13 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
-  entry_t *current;
-
-  for (unsigned long i = 0; i < NO_BUCKETS; i++) {
-    current = ht->buckets[i]->next;
-
-    while (current != NULL) {
-      ioopm_linked_list_append(list, current->key);
-      current = current->next;
-    }
-  }
-
+  ioopm_hash_table_apply_to_all(ht, append_key_to_list, list);
   return list;
 }
 
 ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
-  entry_t *current;
-
-  for (unsigned long i = 0; i < NO_BUCKETS; i++) {
-    current = ht->buckets[i]->next;
-
-    while (current != NULL) {
-      ioopm_linked_list_append(list, current->value);
-      current = current->next;
-    }
-  }
-
+  ioopm_hash_table_apply_to_all(ht, append_value_to_list, list);
   return list;
 }
 
