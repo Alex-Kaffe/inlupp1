@@ -7,14 +7,6 @@
 #include "common.h"
 
 typedef struct link link_t;
-typedef struct compare_data compare_data_t;
-
-// TODO: Move to common.h?
-/// @brief Used as the extra argument in predicates to allow the use of eq_func
-struct compare_data {
-  ioopm_eq_function eq_func;  // The function used in the comparison
-  elem_t element;             // The element to compare to
-};
 
 struct link {
   elem_t value;

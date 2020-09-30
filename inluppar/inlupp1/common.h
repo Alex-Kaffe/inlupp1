@@ -24,6 +24,8 @@ typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
 typedef union elem elem_t;
 
+typedef struct compare_data compare_data_t;
+
 union elem {
   int integer;
   unsigned int unsigned_int;
@@ -33,7 +35,18 @@ union elem {
   void *extra;
 };
 
+
 typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
+
+
+/// @brief Used as the extra argument in predicates when comparing values or keys in the hash table
+/// This is needed since the value and key are generic types and they are compared using either
+/// the hash_func or eq_func. The predicate and apply functions only accept one extra argument
+/// of an arbitrary type, meaning that we need a struct to pass in more than one value.
+struct compare_data {
+  ioopm_eq_function eq_func; // The function used in the comparison
+  elem_t element;            // The element to compare to
+};
 
 // TODO: Should the hash function return an unsigned int?
 typedef unsigned long(*ioopm_hash_function)(elem_t key);

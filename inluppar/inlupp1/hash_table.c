@@ -10,16 +10,6 @@
 #define NO_BUCKETS 17
 
 typedef struct entry entry_t;
-typedef struct compare_data compare_data_t;
-
-/// @brief Used as the extra argument in predicates when comparing values or keys in the hash table
-/// This is needed since the value and key are generic types and they are compared using either
-/// the hash_func or eq_func. The predicate and apply functions only accept one extra argument
-/// of an arbitrary type, meaning that we need a struct to pass in more than one value.
-struct compare_data {
-  void *func;     // The function used in the comparison
-  elem_t element; // The element to compare to
-};
 
 struct entry {
   elem_t key;     // holds the key
@@ -29,7 +19,8 @@ struct entry {
 
 struct hash_table {
   entry_t *buckets[NO_BUCKETS];
-  ioopm_eq_function eq_func;
+  ioopm_eq_function eq_key;
+  ioopm_eq_function eq_value;
   ioopm_hash_function hash_func;
 };
 
@@ -60,11 +51,11 @@ static unsigned long extract_hash_code(elem_t key) {
 /// @param entry the entry to start searching from (generally the dummy)
 /// @param hash_code the hash code to find
 /// @returns the previous entry or sets errno to EINVAL if the key was not found
-static entry_t *find_previous_entry_for_key(ioopm_hash_function hash_func, entry_t *entry, unsigned long hash_code) {
+static entry_t *find_previous_entry_for_key(ioopm_eq_function eq_key, entry_t *entry, elem_t key) {
   entry_t *current = entry;
 
   //Söker igenom tills next == null, eller om nästa i tablen har nyckeln som vi ska sätta in.
-  while (current->next != NULL && hash_func(current->next->key) != hash_code) {
+  while (current->next != NULL && !eq_key(current->next->key, key)) {
     current = current->next;
   }
 
@@ -100,19 +91,19 @@ static void append_value_to_list(elem_t key, elem_t *value, void *x) {
 
 static bool value_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
-  ioopm_eq_function eq_func = (ioopm_eq_function)data->func;
-
-  return eq_func(value, data->element);
+  return data->eq_func(value, data->element);
 }
 
 static bool key_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
-  ioopm_hash_function hash_func = (ioopm_hash_function)data->func;
-
-  return hash_func(key) == hash_func(data->element);
+  return data->eq_func(key, data->element);
 }
 
-ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_func, ioopm_hash_function hash_func) {
+ioopm_hash_table_t *ioopm_hash_table_create(
+  ioopm_eq_function eq_key,
+  ioopm_eq_function eq_value,
+  ioopm_hash_function hash_func
+) {
   // Allocate space for a ioopm_hash_table_t = NO_BUCKETS pointers to
   // entry_t's, which will be set to NULL
   ioopm_hash_table_t *ht = calloc(1, sizeof(ioopm_hash_table_t));
@@ -124,7 +115,8 @@ ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_func, ioopm_has
     ht->hash_func = hash_func;
   }
 
-  ht->eq_func = eq_func;
+  ht->eq_key = eq_key;
+  ht->eq_value = eq_value;
 
   for (int i = 0; i < NO_BUCKETS; i++){
     //Create a dummy value in each bucket with some random values (they will never be read)
@@ -150,7 +142,7 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   unsigned long hashed_key = ht->hash_func(key);
   unsigned long bucket = hashed_key % NO_BUCKETS;
 
-  entry_t *tmp = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], hashed_key);
+  entry_t *tmp = find_previous_entry_for_key(ht->eq_key, ht->buckets[bucket], key);
   entry_t *next = tmp->next;
 
   if (!HAS_ERROR()) {
@@ -167,7 +159,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
   unsigned long bucket = hashed_key % NO_BUCKETS;
 
   /// Search for an existing entry for a key
-  entry_t *entry = find_previous_entry_for_key(ht->hash_func, ht->buckets[bucket], hashed_key);
+  entry_t *entry = find_previous_entry_for_key(ht->eq_key, ht->buckets[bucket], key);
   entry_t *next = entry->next;
 
   /// Check if the next entry should be updated or not
@@ -188,7 +180,7 @@ elem_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key) {
 
   // If the bucket is not empty and the key is valid, try to remove the key-value pair
   if (dummy->next != NULL) {
-    entry_t *previous_entry = find_previous_entry_for_key(ht->hash_func, dummy, hashed_key);
+    entry_t *previous_entry = find_previous_entry_for_key(ht->eq_key, dummy, key);
     entry_t *current_entry = previous_entry->next;
 
     // find_previous_entry_for_key sets errno to EINVAL if no previous entry was found
@@ -239,13 +231,13 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 }
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
-  ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
+  ioopm_list_t *list = ioopm_linked_list_create(ht->eq_key);
   ioopm_hash_table_apply_to_all(ht, append_key_to_list, list);
   return list;
 }
 
 ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
-  ioopm_list_t *list = ioopm_linked_list_create(ht->eq_func);
+  ioopm_list_t *list = ioopm_linked_list_create(ht->eq_value);
   ioopm_hash_table_apply_to_all(ht, append_value_to_list, list);
   return list;
 }
@@ -294,11 +286,11 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
 }
 
 bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key){
-  compare_data_t data = { .func = ht->hash_func, .element = key };
+  compare_data_t data = { .eq_func = ht->eq_key, .element = key };
   return ioopm_hash_table_any(ht, key_compare_pred, &data);
 }
 
 bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, elem_t value) {
-  compare_data_t data = { .func = ht->eq_func, .element = value };
+  compare_data_t data = { .eq_func = ht->eq_value, .element = value };
   return ioopm_hash_table_any(ht, value_compare_pred, &data);
 }
