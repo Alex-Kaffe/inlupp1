@@ -9,6 +9,7 @@
 
 #define DEFAULT_BUCKETS 17
 #define DEFAULT_LOAD_FACTOR 0.75
+#define PRIMES_SIZE 11
 
 typedef struct entry entry_t;
 
@@ -20,6 +21,7 @@ struct entry {
 
 struct hash_table {
   size_t size;
+  size_t primes[PRIMES_SIZE];
   float load_factor;
   unsigned long capacity;
   ioopm_eq_function eq_key;
@@ -47,8 +49,24 @@ static void entry_destroy(entry_t *entry){
 }
 
 /// @brief Checks if the current size exceeds the current load factor
-static bool should_increase_buckets(ioopm_hash_table_t *ht) {
-  return ht->load_factor * ht->capacity < ht->size;
+static bool should_increase_buckets(float load_factor, unsigned long capacity, size_t size) {
+  return load_factor * capacity < size;
+}
+
+/// @brief Calculates the new capacity for the hash table based on the previous capacity
+static size_t get_new_capacity(ioopm_hash_table_t *ht) {
+  size_t current_capacity = ht->capacity;
+  
+  if (current_capacity < ht->primes[0] && !should_increase_buckets(ht->load_factor, ht->primes[0], ht->size)) {
+    return ht->primes[0];
+  }
+  
+  size_t index = 0;
+  while(current_capacity <= ht->primes[index] && index < PRIMES_SIZE - 1){
+    index++;
+  }
+  
+  return ht->primes[index];
 }
 
 static unsigned long extract_hash_code(elem_t key) {
@@ -130,6 +148,7 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
     .load_factor = load_factor,
     .eq_key = eq_key,
     .eq_value = eq_value,
+    .primes = { 17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381 },
   };
 
   // If the user did not provide a hash func, default to the integer value
@@ -140,7 +159,7 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
   }
 
   ht->buckets = calloc(capacity, sizeof(entry_t*));
-
+//
   create_dummies(ht->buckets, ht->capacity);
 
   return ht;
@@ -174,19 +193,14 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
 }
 
 static void resize_hash_table(ioopm_hash_table_t *ht) {
-  size_t i = 0;
-  size_t primes[] = {7, 17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
   entry_t **old_buckets = ht->buckets;
   unsigned long old_capacity = ht->capacity;
-
-  // TODO: Update the calculation of the new capacity
-  while(old_capacity != primes[i]){
-    i++;
-  }
-
+  
+  // Update the capacity
+  ht->capacity = get_new_capacity(ht);
+  
   // Update the capacity of the hash table and allocate memory
   // for the resized hash table and insert dummy entries
-  ht->capacity = primes[i+1];
   ht->buckets = calloc(ht->capacity, sizeof(entry_t*));
   create_dummies(ht->buckets, ht->capacity);
 
@@ -231,7 +245,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
     ht->size++;
 
     // TODO: Probably should not run this each time we insert when resizing
-    if (should_increase_buckets(ht)) {
+    if (should_increase_buckets(ht->load_factor, ht->capacity, ht->size)) {
       resize_hash_table(ht);
     }
 

@@ -793,7 +793,7 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty hash table", test_hash_table_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all)) ||
     (NULL == CU_add_test(test_suite1, "it can take in the hash function as an argument", test_hash_table_hash_function)) ||
-    (NULL == CU_add_test(test_suite1, "it resizes when inserting 10 elements with a load factor of 0.5", test_hash_table_resize))
+    (NULL == CU_add_test(test_suite1, "it resizes and rehashes the hash table when the load factor is exceeded", test_hash_table_resize))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
