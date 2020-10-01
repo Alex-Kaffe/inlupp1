@@ -175,7 +175,7 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
 
 static void resize_hash_table(ioopm_hash_table_t *ht) {
   size_t i = 0;
-  size_t primes[] = {17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
+  size_t primes[] = {7, 17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
   entry_t **old_buckets = ht->buckets;
   unsigned long old_capacity = ht->capacity;
 

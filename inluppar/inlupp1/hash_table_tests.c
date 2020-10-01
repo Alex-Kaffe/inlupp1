@@ -209,7 +209,7 @@ void test_remove_invalid_key() {
 }
 
 void test_hash_table_resize() {
-  unsigned long initial_buckets = 17;
+  unsigned long initial_buckets = 7;
   size_t expected_size = 4;
 
   ioopm_hash_table_t *ht = ioopm_hash_table_create_custom(
