@@ -172,6 +172,8 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   return ptr_elem(NULL);
 }
 
+// TODO: We have some memory leaks when using large amounts of data
+// TODO: freq_count seems to be saving the same word separately, rather than only once
 static void resize_hash_table(ioopm_hash_table_t *ht) {
   size_t i = 0;
   size_t primes[] = {17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
@@ -191,12 +193,17 @@ static void resize_hash_table(ioopm_hash_table_t *ht) {
 
   entry_t *entry, *tmp;
 
+  // Reset the size, since inserting will increase the size
+  ht->size = 0;
+
   for (unsigned long i = 0; i < old_capacity; i++){
     entry = old_buckets[i]->next;
 
     while (entry != NULL) {
       tmp = entry->next;
       ioopm_hash_table_insert(ht, entry->key, entry->value);
+
+      // Insert is pass by value, meaning that we can safely destroy the previous entry
       entry_destroy(entry);
       entry = tmp;
     }
