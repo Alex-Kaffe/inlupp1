@@ -130,12 +130,13 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
     .load_factor = load_factor,
     .eq_key = eq_key,
     .eq_value = eq_value,
-    .hash_func = extract_hash_code,
   };
 
   // If the user did not provide a hash func, default to the integer value
   if (hash_func == NULL) {
     ht->hash_func = extract_hash_code;
+  } else {
+    ht->hash_func = hash_func;
   }
 
   ht->buckets = calloc(capacity, sizeof(entry_t*));
@@ -172,8 +173,6 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   return ptr_elem(NULL);
 }
 
-// TODO: We have some memory leaks when using large amounts of data
-// TODO: freq_count seems to be saving the same word separately, rather than only once
 static void resize_hash_table(ioopm_hash_table_t *ht) {
   size_t i = 0;
   size_t primes[] = {17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
