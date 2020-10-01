@@ -106,14 +106,7 @@ void assert_values_array(ioopm_hash_table_t *ht, elem_t expected_values[], size_
     value = ioopm_linked_list_get(values, i);
     // Make sure that all values are present in the values array
     // and that they are in the expected order.
-    if (value.extra == NULL) {
-      // Prevent segfault if a value is NULL and simply assert the pointer instead.
-      // Doing it like this makes it more clear as to why the test does not work,
-      // rather than just crashing
-      CU_ASSERT_EQUAL(value.extra, expected_values[i].extra);
-    } else {
-      CU_ASSERT_TRUE(eq_elem_string(value, expected_values[i]));
-    }
+    CU_ASSERT_TRUE(eq_elem_string(value, expected_values[i]));
   }
 
   // Make sure to clean up the allocated values array
@@ -216,27 +209,64 @@ void test_remove_invalid_key() {
 }
 
 void test_hash_table_resize() {
+  unsigned long initial_buckets = 17;
+  size_t expected_size = 4;
+
   ioopm_hash_table_t *ht = ioopm_hash_table_create_custom(
     eq_elem_int,
     eq_elem_string,
     NULL,
     0.5,
-    17
+    initial_buckets
   );
 
-  char *test_value = "test";
+  // Insert 4 elements to cause a resize (since 0.5*7 == 3.5)
+  elem_t expected_keys[] = {
+    int_elem(100),
+    int_elem(300),
+    int_elem(600),
+    int_elem(700),
+  };
 
-  // Insert 10 elements to cause a resize (since 0.5*17 == 8.5, where 17 is the initial bucket amount)
-  for (int i = 0; i < 10; i++) {
-    // Populate the hash table with 17 different entries, one for each bucket
-    ioopm_hash_table_insert(ht, int_elem(i), ptr_elem(test_value));
+  elem_t expected_values[] = {
+    ptr_elem("hello"),
+    ptr_elem("world"),
+    ptr_elem("goodbye"),
+    ptr_elem("dude"),
+  };
+
+  for (size_t i = 0; i < expected_size; i++) {
+    ioopm_hash_table_insert(ht, expected_keys[i], expected_values[i]);
   }
 
-  for (int i = 0; i < 10; i++) {
-    // Populate the hash table with 17 different entries, one for each bucket
-    ioopm_hash_table_remove(ht, int_elem(i));
+  ioopm_list_t *keys = ioopm_hash_table_keys(ht);
+  ioopm_list_t *values = ioopm_hash_table_values(ht);
+
+  CU_ASSERT_EQUAL(ioopm_linked_list_size(keys), expected_size);
+  CU_ASSERT_EQUAL(ioopm_linked_list_size(values), expected_size);
+
+  elem_t key;
+
+  // Rehashing the hash table will cause a reorder of elements,
+  // since they will most likely get put into different buckets than previously.
+  // Because of this, we can not use the assert_*_array function
+  for (size_t i = 0; i < expected_size; i++) {
+    // Make sure that key-value
+    key = ioopm_linked_list_get(keys, i);
+
+    for (size_t j = 0; j < expected_size; j++) {
+      if (eq_elem_int(expected_keys[j], key)) {
+        CU_ASSERT_TRUE(eq_elem_string(ioopm_linked_list_get(values, j), expected_values[i]));
+      }
+    }
   }
 
+  for (int i = 0; i < expected_size; i++) {
+    ioopm_hash_table_remove(ht, expected_keys[i]);
+  }
+
+  ioopm_linked_list_destroy(keys);
+  ioopm_linked_list_destroy(values);
   ioopm_hash_table_destroy(ht);
 }
 

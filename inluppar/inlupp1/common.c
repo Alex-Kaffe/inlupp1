@@ -6,11 +6,11 @@ bool eq_elem_string(elem_t a, elem_t b){
   char *p1 = a.extra;
   char *p2 = b.extra;
 
-  if (p1 == NULL && p1 == p2) {
-    return true;
+  if (p1 == NULL || p1 == p2) {
+    return p1 == p2;
   }
 
-  return strcmp((char*)p1, (char*)p2) == 0;
+  return strcmp(p1, p2) == 0;
 }
 
 /// @brief Compares the integer value of two elem_t
