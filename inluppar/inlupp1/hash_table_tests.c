@@ -270,6 +270,20 @@ void test_hash_table_resize() {
   ioopm_hash_table_destroy(ht);
 }
 
+void test_hash_table_resize_large() {
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, eq_elem_int, NULL);
+
+  for (size_t i = 0; i < 500; i++) {
+    ioopm_hash_table_insert(ht, int_elem(i), int_elem(i+100));
+  }
+
+  for (size_t i = 0; i < 500; i++) {
+    ioopm_hash_table_remove(ht, int_elem(i));
+  }
+
+  ioopm_hash_table_destroy(ht);
+}
+
 void test_remove_deletes_entry() {
   ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_int, eq_elem_string, NULL);
 
@@ -793,7 +807,8 @@ int main() {
     (NULL == CU_add_test(test_suite1, "it returns true when applying a predicate to an empty hash table", test_hash_table_all_empty)) ||
     (NULL == CU_add_test(test_suite1, "it applies a function to all entries and updates the values", test_hash_table_apply_all)) ||
     (NULL == CU_add_test(test_suite1, "it can take in the hash function as an argument", test_hash_table_hash_function)) ||
-    (NULL == CU_add_test(test_suite1, "it resizes and rehashes the hash table when the load factor is exceeded", test_hash_table_resize))
+    (NULL == CU_add_test(test_suite1, "it resizes and rehashes the hash table when the load factor is exceeded", test_hash_table_resize)) ||
+    (NULL == CU_add_test(test_suite1, "it resizes and rehashes the hash table for a large amount of insertions", test_hash_table_resize_large))
    ) {
     CU_cleanup_registry();
     return CU_get_error();
