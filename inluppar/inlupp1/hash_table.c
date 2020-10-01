@@ -175,38 +175,36 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
 static void resize_hash_table(ioopm_hash_table_t *ht) {
   size_t i = 0;
   size_t primes[] = {17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381};
+  entry_t **old_buckets = ht->buckets;
+  unsigned long old_capacity = ht->capacity;
 
-  while(ht->capacity != primes[i]){
+  // TODO: Update the calculation of the new capacity
+  while(old_capacity != primes[i]){
     i++;
   }
 
-  unsigned long new_capacity = primes[i+1];
+  // Update the capacity of the hash table and allocate memory
+  // for the resized hash table and insert dummy entries
+  ht->capacity = primes[i+1];
+  ht->buckets = calloc(ht->capacity, sizeof(entry_t*));
+  create_dummies(ht->buckets, ht->capacity);
 
-  entry_t *buckets = calloc(new_capacity, sizeof(entry_t*));
+  entry_t *entry, *tmp;
 
-  ioopm_hash_table_t *resized_ht = ioopm_hash_table_create_custom(
-    ht->eq_key,
-    ht->eq_value,
-    ht->hash_func,
-    ht->load_factor,
-    new_capacity
-  );
-
-  entry_t *entry;
-
-  // Iterate through the old buckets-array and insert them into the new hash table
-  for (unsigned long i = 0; i < ht->capacity; i++){
-    entry = ht->buckets[i]->next;
+  for (unsigned long i = 0; i < old_capacity; i++){
+    entry = old_buckets[i]->next;
 
     while (entry != NULL) {
-      ioopm_hash_table_insert(resized_ht, entry->key, entry->value);
-      entry = entry->next;
+      tmp = entry->next;
+      ioopm_hash_table_insert(ht, entry->key, entry->value);
+      entry_destroy(entry);
+      entry = tmp;
     }
+
+    free(old_buckets[i]);
   }
 
-  ioopm_hash_table_destroy(ht);
-
-  *ht = *resized_ht;
+  free(old_buckets);
 }
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {

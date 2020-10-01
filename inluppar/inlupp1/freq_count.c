@@ -16,7 +16,7 @@ unsigned long string_hash(elem_t key) {
   do {
     result = result * 31 + *str;
   } while (*++str != '\0');
-  
+
   return result;
 }
 
@@ -48,6 +48,7 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
       free(buf);
       break;
     }
+
 
   // Allokeras i process_file kallelsen i strdup
   // Frigörs i main senare efter att det blivit uppropat från array
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
     puts("Usage: freq-count file1 ... filen");
     return 1;
   }
-  
+
   for (int i = 1; i < argc; ++i) {
     process_file(argv[i], ht);
   }
@@ -95,20 +96,20 @@ int main(int argc, char *argv[]) {
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(keys);
 
   printf("Total unique words: %zu\n", size);
-  
+
   char *arr[size];
   size_t i = 0;
   elem_t current;
-  
+
   // Create array with words
   while (ioopm_iterator_has_next(iterator)) {
     current = ioopm_iterator_next(iterator);
-    arr[i] = current.extra; 
+    arr[i] = current.extra;
     i++;
   }
-  
+
   sort_keys(arr, size);
-  
+
   // Print all words
   char *current_word;
   for (i = 0; i < size; i++) {
@@ -122,7 +123,7 @@ int main(int argc, char *argv[]) {
     // directly, but rather as a pointer.
     free(arr[i]);
   }
-  
+
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(keys);
   ioopm_hash_table_destroy(ht);
