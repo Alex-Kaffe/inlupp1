@@ -3,8 +3,8 @@
 #include "common.h"
 #include "iterator.h"
 
-typedef bool(*ioopm_char_predicate)(elem_t value, void *extra); //TODO, make them the correct type;
-typedef void(*ioopm_apply_char_function)(elem_t *value, void *extra); //TODO, make them the correct type;
+typedef bool(*ioopm_char_predicate)(elem_t value, void *extra); 
+typedef void(*ioopm_apply_char_function)(elem_t *value, void *extra); 
 
 /// @brief Creates a new list with 1 dummy-link.
 /// @return an empty linked list

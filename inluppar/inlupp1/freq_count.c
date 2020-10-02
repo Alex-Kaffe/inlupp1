@@ -9,17 +9,6 @@
 
 #define Delimiters "+-#@()[]{}.,:;!? \t\n\r"
 
-unsigned long string_hash(elem_t key) {
-  unsigned long result = 0;
-  char *str = (char*)key.extra;
-
-  do {
-    result = result * 31 + *str;
-  } while (*++str != '\0');
-
-  return result;
-}
-
 //Compares two strings.
 static int cmpstringp(const void *p1, const void *p2) {
   return strcmp(* (char * const *) p1, * (char * const *) p2);
@@ -49,11 +38,6 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
       break;
     }
 
-
-  // Allokeras i process_file kallelsen i strdup
-  // Frigörs i main senare efter att det blivit uppropat från array
-  // Invalid read av storleken som kommit från find_prev_entry
-
     for (char *word = strtok(buf, Delimiters);
        word && *word;
        word = strtok(NULL, Delimiters)
@@ -79,13 +63,12 @@ void process_file(char *filename, ioopm_hash_table_t *ht) {
 }
 
 int main(int argc, char *argv[]) {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, eq_elem_int, string_hash);
-
   if (argc <= 1) {
-    ioopm_hash_table_destroy(ht);
     puts("Usage: freq-count file1 ... filen");
     return 1;
   }
+  
+  ioopm_hash_table_t *ht = ioopm_hash_table_create(eq_elem_string, eq_elem_int, string_knr_hash);
 
   for (int i = 1; i < argc; ++i) {
     process_file(argv[i], ht);
@@ -117,10 +100,10 @@ int main(int argc, char *argv[]) {
     printf("%s: %d\n", current_word, ioopm_hash_table_lookup(ht, ptr_elem(current_word)).integer);
   }
 
-  for (i = 0 ; i < size ; i++){
-    // Deallocate each duplicated word string.
-    // This is not handled by the hash table, since the value is not stored in the hash table
-    // directly, but rather as a pointer.
+  // Deallocate each duplicated word after we have printed out each element from the hash table
+  // This is not handled by the hash table, since the value is not stored in the hash table
+  // directly, but rather as a pointer.
+  for (i = 0 ; i < size ; i++) {
     free(arr[i]);
   }
 

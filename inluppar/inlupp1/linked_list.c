@@ -63,10 +63,9 @@ static elem_t remove_link(ioopm_list_t *list, link_t *previous, link_t *remove) 
 
 /// @brief Checks if an index is in the range of [0..n-1]
 static bool is_valid_index(ioopm_list_t *list, size_t index) {
-  return (index >= 0 && index < ioopm_linked_list_size(list));
+  return (index >= 0 && index < list->size);
 }
 
-// TODO: Add index check in this function
 /// @param index the index to get from list (must be a valid index [0..n-1])
 static link_t *get_link_from_index(ioopm_list_t *list, size_t index) {
   link_t *previous = list->first->next;
@@ -125,7 +124,7 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, elem_t value) {
   link_t *new_link = link_create(value, list->first->next);
 
   // Make sure that we update the last pointer if the list is empty
-  if (ioopm_linked_list_size(list) == 0) {
+  if (list->size == 0) {
     list->last = new_link;
   }
 
@@ -142,7 +141,7 @@ void ioopm_linked_list_insert(ioopm_list_t *list, size_t index, elem_t value) {
 
   if (index == list->size) {
     ioopm_linked_list_append(list, value);
-  } else if (index == 0 || ioopm_linked_list_size(list) == 0) {
+  } else if (index == 0 || list->size == 0) {
     ioopm_linked_list_prepend(list, value);
   } else {
     link_t *previous = get_link_from_index(list, index - 1);
@@ -181,7 +180,7 @@ elem_t ioopm_linked_list_remove(ioopm_list_t *list, size_t index) {
     previous = get_link_from_index(list, index - 1);
 
     // Check if the last pointer in ioopm_list_t should be updated
-    if (index == ioopm_linked_list_size(list) - 1) {
+    if (index == list->size - 1) {
       list->last = previous;
     }
 

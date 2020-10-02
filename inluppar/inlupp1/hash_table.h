@@ -44,7 +44,7 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
   ioopm_eq_function eq_value,
   ioopm_hash_function hash_func,
   float load_factor,
-  unsigned long capacity
+  size_t capacity
 );
 
 /// @brief Delete a hash table and free its memory

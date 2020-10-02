@@ -7,9 +7,9 @@
 #include "hash_table.h"
 #include "linked_list.h"
 
-#define DEFAULT_BUCKETS 17
+#define DEFAULT_CAPACITY 17
 #define DEFAULT_LOAD_FACTOR 0.75
-#define PRIMES_SIZE 11
+#define GROWTH_FACTOR 2
 
 typedef struct entry entry_t;
 
@@ -20,14 +20,13 @@ struct entry {
 };
 
 struct hash_table {
-  size_t size;
-  size_t primes[PRIMES_SIZE];
-  float load_factor;
-  unsigned long capacity;
-  ioopm_eq_function eq_key;
-  ioopm_eq_function eq_value;
-  ioopm_hash_function hash_func;
-  entry_t **buckets;
+  size_t size;                   // Holds the amount of entries.
+  size_t capacity;               // How many buckets there are in the table. 
+  float load_factor;             // How many entries/bucket before resizing.
+  ioopm_eq_function eq_key;      // equality function for keys.
+  ioopm_eq_function eq_value;    // equality function for the values.
+  ioopm_hash_function hash_func; // The hashing function.
+  entry_t **buckets;             // Pointer towards the buckets.
 };
 
 static entry_t *entry_create(elem_t key, elem_t value, entry_t *next) {
@@ -49,24 +48,13 @@ static void entry_destroy(entry_t *entry){
 }
 
 /// @brief Checks if the current size exceeds the current load factor
-static bool should_increase_buckets(float load_factor, unsigned long capacity, size_t size) {
+static bool should_increase_buckets(float load_factor, size_t capacity, size_t size) {
   return load_factor * capacity < size;
 }
 
 /// @brief Calculates the new capacity for the hash table based on the previous capacity
 static size_t get_new_capacity(ioopm_hash_table_t *ht) {
-  size_t current_capacity = ht->capacity;
-  
-  if (current_capacity < ht->primes[0] && !should_increase_buckets(ht->load_factor, ht->primes[0], ht->size)) {
-    return ht->primes[0];
-  }
-  
-  size_t index = 0;
-  while(current_capacity <= ht->primes[index] && index < PRIMES_SIZE - 1){
-    index++;
-  }
-  
-  return ht->primes[index];
+  return ht->capacity * GROWTH_FACTOR;
 }
 
 static unsigned long extract_hash_code(elem_t key) {
@@ -74,11 +62,51 @@ static unsigned long extract_hash_code(elem_t key) {
 }
 
 /// @brief Inserts dummy nodes into each bucket
-static void create_dummies(entry_t **buckets, unsigned long total_buckets) {
-  for (unsigned long i = 0; i < total_buckets; i++){
+static entry_t **create_buckets(size_t capacity) {
+  entry_t **buckets = calloc(capacity, sizeof(entry_t*));
+  
+  for (size_t i = 0; i < capacity; i++){
     //Create a dummy value in each bucket with some random values (they will never be read)
     buckets[i] = entry_create(int_elem(0), ptr_elem(NULL), NULL);
   }
+  
+  return buckets;
+}
+
+
+// @brief Resizing the hashtable creating
+static void resize_hash_table(ioopm_hash_table_t *ht) {
+  entry_t **old_buckets = ht->buckets;
+  size_t old_capacity = ht->capacity;
+  
+  // Update the capacity
+  ht->capacity = get_new_capacity(ht);
+  
+  // Update the capacity of the hash table and allocate memory
+  // for the resized hash table and insert dummy entries
+  ht->buckets = create_buckets(ht->capacity);
+  
+  // Reset the size, since inserting will increase the size
+  ht->size = 0;
+
+  entry_t *entry, *tmp;
+
+  for (size_t i = 0; i < old_capacity; i++){
+    entry = old_buckets[i]->next;
+
+    while (entry != NULL) {
+      tmp = entry->next;
+      ioopm_hash_table_insert(ht, entry->key, entry->value);
+
+      // Insert is pass by value, meaning that we can safely destroy the previous entry
+      entry_destroy(entry);
+      entry = tmp;
+    }
+
+    free(old_buckets[i]);
+  }
+
+  free(old_buckets);
 }
 
 /// @brief Finds the previous entry for a hash code (key)
@@ -128,8 +156,14 @@ static bool key_compare_pred(elem_t key, elem_t value, void *x) {
   return data->eq_func(key, data->element);
 }
 
-ioopm_hash_table_t *ioopm_hash_table_create(ioopm_eq_function eq_key, ioopm_eq_function eq_value, ioopm_hash_function hash_func) {
-  return ioopm_hash_table_create_custom(eq_key, eq_value, hash_func, DEFAULT_LOAD_FACTOR, DEFAULT_BUCKETS);
+
+//@brief creates a hashtable.
+ioopm_hash_table_t *ioopm_hash_table_create(
+  ioopm_eq_function eq_key,
+  ioopm_eq_function eq_value,
+  ioopm_hash_function hash_func
+) {
+  return ioopm_hash_table_create_custom(eq_key, eq_value, hash_func, DEFAULT_LOAD_FACTOR, DEFAULT_CAPACITY);
 }
 
 ioopm_hash_table_t *ioopm_hash_table_create_custom(
@@ -137,7 +171,7 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
   ioopm_eq_function eq_value,
   ioopm_hash_function hash_func,
   float load_factor,
-  unsigned long capacity
+  size_t capacity
 ) {
   // Allocate space for a ioopm_hash_table_t and an array of buckets with the size of capacity
   ioopm_hash_table_t *ht = calloc(1, sizeof(ioopm_hash_table_t));
@@ -148,7 +182,6 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
     .load_factor = load_factor,
     .eq_key = eq_key,
     .eq_value = eq_value,
-    .primes = { 17, 31, 67, 127, 257, 509, 1021, 2053, 4099, 8191, 16381 },
   };
 
   // If the user did not provide a hash func, default to the integer value
@@ -158,9 +191,8 @@ ioopm_hash_table_t *ioopm_hash_table_create_custom(
     ht->hash_func = hash_func;
   }
 
-  ht->buckets = calloc(capacity, sizeof(entry_t*));
-//
-  create_dummies(ht->buckets, ht->capacity);
+  // Allocate memory for the buckets and insert dummies
+  ht->buckets = create_buckets(capacity);
 
   return ht;
 }
@@ -170,7 +202,7 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht) {
   ioopm_hash_table_clear(ht);
 
   // Deallocate dummy entries
-  for (unsigned long i = 0; i < ht->capacity; i ++){
+  for (size_t i = 0; i < ht->capacity; i ++){
     free(ht->buckets[i]);
   }
 
@@ -192,41 +224,6 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   return ptr_elem(NULL);
 }
 
-static void resize_hash_table(ioopm_hash_table_t *ht) {
-  entry_t **old_buckets = ht->buckets;
-  unsigned long old_capacity = ht->capacity;
-  
-  // Update the capacity
-  ht->capacity = get_new_capacity(ht);
-  
-  // Update the capacity of the hash table and allocate memory
-  // for the resized hash table and insert dummy entries
-  ht->buckets = calloc(ht->capacity, sizeof(entry_t*));
-  create_dummies(ht->buckets, ht->capacity);
-
-  entry_t *entry, *tmp;
-
-  // Reset the size, since inserting will increase the size
-  ht->size = 0;
-
-  for (unsigned long i = 0; i < old_capacity; i++){
-    entry = old_buckets[i]->next;
-
-    while (entry != NULL) {
-      tmp = entry->next;
-      ioopm_hash_table_insert(ht, entry->key, entry->value);
-
-      // Insert is pass by value, meaning that we can safely destroy the previous entry
-      entry_destroy(entry);
-      entry = tmp;
-    }
-
-    free(old_buckets[i]);
-  }
-
-  free(old_buckets);
-}
-
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
   unsigned long hashed_key = ht->hash_func(key);
 
@@ -244,7 +241,6 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value) {
     entry->next = entry_create(key, value, next);
     ht->size++;
 
-    // TODO: Probably should not run this each time we insert when resizing
     if (should_increase_buckets(ht->load_factor, ht->capacity, ht->size)) {
       resize_hash_table(ht);
     }
@@ -327,7 +323,7 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
 bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg){
   entry_t *entry;
 
-  for(unsigned long i = 0; i < ht->capacity; i++){
+  for(size_t i = 0; i < ht->capacity; i++){
     entry = ht->buckets[i]->next;
 
     while(entry != NULL) {
@@ -342,7 +338,7 @@ bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
 void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function apply_fun, void *arg){
   entry_t *entry;
 
-  for(unsigned long i = 0; i < ht->capacity; i++){
+  for(size_t i = 0; i < ht->capacity; i++){
     entry = ht->buckets[i]->next;
 
     while(entry != NULL) {
@@ -355,7 +351,7 @@ void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function 
 bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg){
   entry_t *entry;
 
-  for (unsigned long i = 0; i < ht->capacity; i++) {
+  for (size_t i = 0; i < ht->capacity; i++) {
     entry = ht->buckets[i]->next;
 
     while(entry != NULL) {

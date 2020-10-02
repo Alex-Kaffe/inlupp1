@@ -17,3 +17,14 @@ bool eq_elem_string(elem_t a, elem_t b){
 bool eq_elem_int(elem_t a, elem_t b) {
   return a.integer == b.integer;
 }
+
+unsigned long string_knr_hash(elem_t key) {
+  unsigned long result = 0;
+  char *str = (char*)key.extra;
+
+  do {
+    result = result * 31 + *str;
+  } while (*++str != '\0');
+
+  return result;
+}

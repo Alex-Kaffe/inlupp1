@@ -27,6 +27,11 @@ typedef union elem elem_t;
 
 typedef struct compare_data compare_data_t;
 
+typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
+
+typedef unsigned long(*ioopm_hash_function)(elem_t key);
+
+/// @brief Union type for storing generic data 
 union elem {
   int integer;
   unsigned int unsigned_int;
@@ -35,9 +40,6 @@ union elem {
   float floating;
   void *extra;
 };
-
-
-typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 
 /// @brief Used as the extra argument in predicates when comparing values or keys in the hash table
 /// This is needed since the value and key are generic types and they are compared using either
@@ -48,10 +50,10 @@ struct compare_data {
   elem_t element;            // The element to compare to
 };
 
-typedef unsigned long(*ioopm_hash_function)(elem_t key);
-
 /// @brief Compares the char* pointers of two elem_t
 bool eq_elem_string(elem_t a, elem_t b);
 
 /// @brief Compares the integer value of two elem_t
 bool eq_elem_int(elem_t a, elem_t b);
+
+unsigned long string_knr_hash(elem_t key);
