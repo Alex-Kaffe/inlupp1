@@ -8,22 +8,25 @@
 
 typedef struct link link_t;
 
+//@brief the value within a list, with a pointer towards the next value.
 struct link {
-  elem_t value;
-  link_t *next;
+  elem_t value; //The value of a link.
+  link_t *next; // The next link in the list (Possibly NULL)
 };
 
+//@brief a list, with a pointer on the dummy link, and the last link, the size of the list, and the equality function for the values.
 struct list {
-  link_t *first;
-  link_t *last;
-  size_t size;
-  ioopm_eq_function eq_func;
+  link_t *first;             // A dummy link in the first spot of the list.
+  link_t *last;              // The last link in the list (possibly the dummy if empty)
+  size_t size;               // The amount of links in the list.
+  ioopm_eq_function eq_func; // Equality function to compare with te values within the list.
 };
 
+//@brief an iterator that goes through a list, with the iterators current index.
 struct iter {
-  size_t index;
-  link_t *current;
-  ioopm_list_t *list;
+  size_t index;      // Which index the iterator's currently on.
+  link_t *current;   // The link the iterator's currently on.
+  ioopm_list_t *list;// The list the iterator's working on.
 };
 
 static link_t *link_create(elem_t value, link_t *next) {

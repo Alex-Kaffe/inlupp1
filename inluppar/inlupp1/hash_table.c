@@ -13,12 +13,14 @@
 
 typedef struct entry entry_t;
 
+//@brief the entries that reside within the hash table.
 struct entry {
   elem_t key;     // holds the key
   elem_t value;   // holds the value
   entry_t *next;  // points to the next entry (possibly NULL)
 };
 
+//@brief a hash table, containing its equality functions, the size, buckets containing the entries, and the hash function.
 struct hash_table {
   size_t size;                   // Holds the amount of entries.
   size_t capacity;               // How many buckets there are in the table. 
@@ -146,6 +148,7 @@ static void append_value_to_list(elem_t key, elem_t *value, void *x) {
   ioopm_linked_list_append(list, *value);
 }
 
+
 static bool value_compare_pred(elem_t key, elem_t value, void *x) {
   compare_data_t *data = (compare_data_t*)x;
   return data->eq_func(value, data->element);
@@ -157,7 +160,6 @@ static bool key_compare_pred(elem_t key, elem_t value, void *x) {
 }
 
 
-//@brief creates a hashtable.
 ioopm_hash_table_t *ioopm_hash_table_create(
   ioopm_eq_function eq_key,
   ioopm_eq_function eq_value,
@@ -217,6 +219,7 @@ elem_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key) {
   entry_t *tmp = find_previous_entry_for_key(ht->eq_key, ht->buckets[bucket], key);
   entry_t *next = tmp->next;
 
+  //Check if the entry existed in the hashtable.
   if (!HAS_ERROR()) {
     return next->value;
   }
@@ -299,6 +302,7 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
     dummy->next = NULL; // make sure that the dummy does not point to an unallocated entry
 
     while (next_entry != NULL) {
+      //Iterate through the bucket, destroying each entry.
       tmp = next_entry->next;
       entry_destroy(next_entry);
       next_entry = tmp;
@@ -309,12 +313,14 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht) {
 }
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht) {
+  //Creates a list, appending each key to the list and returns it.
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_key);
   ioopm_hash_table_apply_to_all(ht, append_key_to_list, list);
   return list;
 }
 
 ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht) {
+  //Creates a list, appending each value to the list and returns it.
   ioopm_list_t *list = ioopm_linked_list_create(ht->eq_value);
   ioopm_hash_table_apply_to_all(ht, append_value_to_list, list);
   return list;
@@ -327,6 +333,7 @@ bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
     entry = ht->buckets[i]->next;
 
     while(entry != NULL) {
+      //If an entry doesn't conform to the predicate, return false.
       if (!pred(entry->key, entry->value, arg)) return false;
       entry = entry->next;
     }

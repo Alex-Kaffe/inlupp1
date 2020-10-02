@@ -9,14 +9,8 @@
 /**
  * @file hash_table.h
  * @author Fredrik Engstrand, Alex Alstergren
- * @date 1 Sep 2019
+ * @date 02 October 2020
  * @brief Simple hash table that maps integer keys to string values.
- *
- * Here typically goes a more extensive explanation of what the header
- * defines. Doxygens tags are words preceeded by either a backslash @\
- * or by an at symbol @@.
- *
- * @see http://wrigstad.com/ioopm19/assignments/assignment1.html
  */
 
 typedef bool(*ioopm_predicate)(elem_t key, elem_t value, void *extra);
@@ -26,6 +20,7 @@ typedef void(*ioopm_apply_function)(elem_t key, elem_t *value, void *extra);
 /// @param eq_key the function used to compare two keys in the hash table
 /// @param eq_values the function used to compare two values in the hash table
 /// @param hash_func the function used to create a hash code from the key
+///        if NULL, it fallbacks to extracting an integer value from your key
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create(
   ioopm_eq_function eq_key,
