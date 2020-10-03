@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
   printf("Total unique words: %zu\n", size);
 
-  char *arr[size];
+  char **arr = calloc(size, sizeof(char*));
   size_t i = 0;
   elem_t current;
 
@@ -106,6 +106,8 @@ int main(int argc, char *argv[]) {
   for (i = 0 ; i < size ; i++) {
     free(arr[i]);
   }
+
+  free(arr);
 
   ioopm_iterator_destroy(iterator);
   ioopm_linked_list_destroy(keys);
