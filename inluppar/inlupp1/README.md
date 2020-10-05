@@ -69,7 +69,7 @@ Top 3 functions for our code:
 2. `ioopm_hash_table_lookup (hash_table.c)`
 3. `ioopm_hash_table_insert (hash_table.c)`
 
-## 10k-long-word.txt
+## 10k-words.txt
 Top 3 functions:
 1. `process_file (freq_count.c)`
 2. `find_previous_entry_for_key (hash_table.c)`
@@ -80,7 +80,7 @@ Top 3 functions for our code:
 2. `ioopm_hash_table_lookup (hash_table.c)`
 3. `ioopm_hash_table_insert (hash_table.c)`
 
-## 16k-long-word.txt
+## 16k-words.txt
 Top 3 functions:
 1. `find_previous_entry_for_key (hash_table.c)`
 2. `process_file (freq_count.c)`
@@ -91,13 +91,6 @@ Top 3 functions for our code:
 2. `eq_elem_string (common.c)`
 3. `ioopm_hash_table_lookup (hash_table.c)`
 
-## english-words.txt
-This file contains almost 500.000 unique words and trying to insert those into a hash table with 
-a capacity of 17 means that each bucket will hold about ~30000 entries at completion (if evenly distributed). 
-
-This proves to be too much to handle and generally, the program does not terminate gracefully. 
-
-
 ```bash
 real time: 0.058s
 user time: 0.050s
@@ -105,9 +98,13 @@ system time: 0.007s
 memory allocations: 15.394 allocations & frees, 528.620 bytes allocated.
 ```
 
-As you can see, the top 3 functions are quite consistent across different inputs (except for `small.txt` because of its extremely small size and fast execution time).
-`find_previous_entry_for_key` is one of the top functions in inputs of a greater size, which is to be expected since most of the public functions will use
-it internally.
+As you can see, the top 3 functions are quite consistent across different inputs (except for `small.txt` because of its extremely small size and fast execution time). `find_previous_entry_for_key` is one of the top functions in inputs of a greater size, which is to be expected since most of the public functions will use it internally.
+
+## english-words.txt
+This file contains almost 500.000 unique words and trying to insert those into a hash table with 
+a capacity of 17 means that each bucket will hold about ~30000 entries at completion (if evenly distributed). 
+
+Because of this, it takes extremely long time to finish (if it even does).
 
 ### Is there some kind of trend?
 As the list grows, finding the previous entry gets more and more expensive and this goes hand in hand with `eq_elem_string` function. 
@@ -125,7 +122,7 @@ Increasing the amount of buckets within the hashtable would allocate more memory
 # Optimized profiling results
 The smaller files are quite uninteresting, so we will only compare the performance of larger files.
 
-## 16k-long-word.txt
+## 16k-words.txt
 Top 3 functions:
 1. `process_file (freq_count.c)`
 2. `process_word (freq_count.c)`
@@ -136,7 +133,6 @@ Top 3 functions for our code:
 2. `resize_hash_table (hash_table.c)`
 3. `entry_create (hash_table.c)`
 
-
 ```bash
 real time: 0.014s
 user time: 0.03s
@@ -144,16 +140,13 @@ system time: 0.010s
 memory allocations: 39.298 allocations & frees, 1.241.356 bytes allocated.
 ```
 
-
 The timing results (even though they are very small) show a significant increase in performance, at almost 4x the speed.
 This does come with about 2x the amount of allocations and memory usage. Depending on your use-cases, you can modify
 the load factor and initial capacity to get better memory usage or better performance. Having both is not always possible.
 
-
 As you can see, `find_previous_entry_for_key` is no longer present in the top 3 functions, which is to be expected,
 since it is only used when searching through a bucket. Having more buckets with less entries means that it won't
 have to search through as many entries as before to find the previous entry to a key.
-
 
 However, we now have another function that is taking some time that was not present before. Namely, the `resize_hash_table`
 function. In the case with the `16k-words.txt` file, the hash table resizes 9 times and each time, a new buckets array
